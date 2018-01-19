@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+from sklearn import preprocessing as skp
+
 
 
 def load_data(filename):
@@ -18,13 +20,28 @@ def get_one_hots(df, cis_size, seq_label):
     # dimensions of dataframe
     rows = df.shape[0]
     # initialize
-    one_hots = np.zeros((rows, cis_size, 5))
+    one_hots = []
+    labels = np.array(['A', 'C', 'G', 'T', 'N'])
+    # prep sci-kit learn's label binarizer
+    lb_e = skp.LabelEncoder()
+    lab_en = lb_e.fit_transform(labels)
+    # one hot requires a 2-D array
+    lab_en = lab_en.reshape(-1, 1)
+
+    oh_e = skp.OneHotEncoder(sparse=False, handle_unknown='ignore')
+    oh_e.fit(lab_en)
+
 
     # fill array with one hot versions of each sequence
     for i in range(rows):
-        fasta = df[seq_label][i]
+        fasta = list(df[seq_label][i])
+        as_int = lb_e.transform(fasta)
+        as_int = as_int.reshape(-1, 1)
+        as_one_hot = oh_e.transform(as_int)
 
-    return None
+        one_hots.append(as_one_hot)
+
+    return one_hots
 
 def base_to_one_hot(df, cis_size):
     """encode input data as one-hot vector
@@ -48,6 +65,8 @@ def main():
     # convert the fasta file to one hot vectors
 
     base_one_hots = base_to_one_hot(data, cis_size)
+
+    print(data.head(10))
 
 
     pass
