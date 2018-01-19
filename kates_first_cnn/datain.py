@@ -21,6 +21,7 @@ def get_one_hots(df, cis_size, seq_label):
     rows = df.shape[0]
     # initialize
     one_hots = []
+    print('empty one hots '+str(one_hots)+ ' correct type '+str(one_hots.__class__))
     labels = np.array(['A', 'C', 'G', 'T', 'N'])
     # prep sci-kit learn's label binarizer
     lb_e = skp.LabelEncoder()
@@ -33,11 +34,13 @@ def get_one_hots(df, cis_size, seq_label):
 
 
     # fill array with one hot versions of each sequence
-    for i in range(rows):
+    for i in range(2):
         fasta = list(df[seq_label][i])
         as_int = lb_e.transform(fasta)
         as_int = as_int.reshape(-1, 1)
         as_one_hot = oh_e.transform(as_int)
+
+        print('whats one hot '+str(as_one_hot))
 
         one_hots.append(as_one_hot)
 
@@ -47,9 +50,10 @@ def base_to_one_hot(df, cis_size):
     """encode input data as one-hot vector
        adds one hot vector column to dataframe """
     newcol = get_one_hots(df, cis_size, seq_label='fasta')
+    print('new col is '+str(newcol))
     df.assign(seq_one_hot=newcol)
 
-    return df
+    return newcol
 
 
 def main():
@@ -65,8 +69,9 @@ def main():
     # convert the fasta file to one hot vectors
 
     base_one_hots = base_to_one_hot(data, cis_size)
+    print('how many cols '+str(base_one_hots.shape[1]))
 
-    print(data.head(10))
+    print(base_one_hots.head(10))
 
 
     pass
