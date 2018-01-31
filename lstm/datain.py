@@ -21,20 +21,6 @@ def get_one_hots(df, cis_size, seq_label, encode_dict):
     returns array of one-hots the same height as the df"""
     # dimensions of dataframe
     rows = df.shape[0]
-    # initialize
-    one_hots = []
-
-
-    # fill array with one hot versions of each sequence
-    for i in range(2):
-        fasta = list(df[seq_label][i])
-        as_int = lb_e.transform(fasta)
-        as_int = as_int.reshape(-1, 1)
-        as_one_hot = oh_e.transform(as_int)
-
-        print('whats one hot '+str(as_one_hot))
-
-        one_hots.append(as_one_hot)
 
     return one_hots
 

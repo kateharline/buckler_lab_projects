@@ -110,3 +110,5 @@ protein_ml
 kak268
 Karl_example_CNNs
 
+# data that doesn't need to be tracked here
+box-data
