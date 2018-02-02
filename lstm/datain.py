@@ -30,8 +30,6 @@ def base_to_one_hot(seqs, encode_dict):
             one_hot.append(encode_dict[letter])
         newcol.append(one_hot)
 
-    print('new col is '+str(newcol))
-
     return newcol
 
 
@@ -62,8 +60,10 @@ def main():
 
     # convert the fasta file to one hot vectors
     synth_one_hots = base_to_one_hot(synth['protein_seqs'].tolist(), encode_dict.to_dict('list'))
+    one_hot_series = pd.Series(synth_one_hots)
+    synth['one_hots'] = one_hot_series.values
 
-
+    return synth
 
 
 if __name__ == '__main__':
