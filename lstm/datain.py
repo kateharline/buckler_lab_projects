@@ -3,6 +3,9 @@ import pandas as pd
 import os
 from sklearn import preprocessing as skp
 
+# import control datasets for testing
+import control as c
+
 
 
 
@@ -16,47 +19,52 @@ def load_data(filename):
     return data
 
 
-def get_one_hots(df, cis_size, seq_label, encode_dict):
-    """ helper function that converts each sequence entry to a one hot vector
-    returns array of one-hots the same height as the df"""
-    # dimensions of dataframe
-    rows = df.shape[0]
-
-    return one_hots
-
-def base_to_one_hot(df, cis_size, encode_dict):
+def base_to_one_hot(seqs, encode_dict):
     """encode input data as one-hot vector
        adds one hot vector column to dataframe """
-    newcol = get_one_hots(df, cis_size, seq_label='fasta', encode_dict)
+    newcol = []
+
+    for seq in seqs:
+        one_hot = []
+        for letter in seq:
+            one_hot.append(encode_dict[letter])
+        newcol.append(one_hot)
+
     print('new col is '+str(newcol))
-    df.assign(seq_one_hot=newcol)
 
     return newcol
 
 
 def main():
-    # what promoter size did you pick
-    us = 1001
-    ds = 500
-    size = us + ds
 
     os.chdir('/Users/kateharline/Desktop/buckler-lab')
+    '''
+    train/test synthetic data
+    
+    '''
+    # how long is the sequence and how many are there... for synthetic data
+    l = 400
+    n = 10000
 
-    # load the data from file
-    x_data = load_data('X.csv')
-    encode_dict = load_data('protein_onehot.csv')
+    synth = c.get_example('protein', n, l)
+    heavy_As = c.get_example('heavy_As', n, l)
 
+    encode_dict = load_data('box-data/protein_onehot.csv')
+
+    '''
+        for when I actually want to use real data
+
+        # load the data from file
+        x_data = load_data('X.csv')
+        encode_dict = load_data('protein_onehot.csv')
+
+    '''
 
     # convert the fasta file to one hot vectors
-    base_one_hots = base_to_one_hot(x_data, size, encode_dict)
+    synth_one_hots = base_to_one_hot(synth['protein_seqs'].tolist(), encode_dict.to_dict('list'))
 
 
-    print('how many cols '+str(base_one_hots.shape[1]))
 
-    print(base_one_hots.head(10))
-
-
-    return None
 
 if __name__ == '__main__':
     main()
