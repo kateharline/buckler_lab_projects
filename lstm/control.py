@@ -52,20 +52,20 @@ def get_example(type, n, l):
         protein_xs = make_xs(n, l, ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
                                       'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', '*'])
         protein_ys = make_ys(protein_xs, [rule_1])
-        protein_df = make_df(protein_xs, 'protein_seqs', protein_ys, 'p_levels')
+        protein_df = make_df(protein_xs, 'seqs', protein_ys, 'p_levels')
         return protein_df
 
 
     if type == 'dna':
         dna_xs = make_xs(n, l, ['A', 'C', 'G', 'T'])
         dna_ys = make_ys(dna_xs, [rule_2])
-        dna_df = make_df(dna_xs, 'dna_seq', dna_ys, 'p_levels')
+        dna_df = make_df(dna_xs, 'seqs', dna_ys, 'p_levels')
         return dna_df
 
     if type == 'rna':
         rna_xs = make_xs(n, l, ['A', 'C', 'G', 'U'])
         rna_ys = make_ys(rna_xs, [rule_2])
-        rna_df = make_df(rna_xs, 'rna_seq', rna_ys, 'p_levels')
+        rna_df = make_df(rna_xs, 'seqs', rna_ys, 'p_levels')
         return rna_df
 
     if type == 'heavy_As':
@@ -76,7 +76,7 @@ def get_example(type, n, l):
                                                                                             .025,.025,.025,.025,.025,.025,
                                                                                             .025])
         protein_ys = make_ys(protein_xs, [rule_1])
-        protein_df = make_df(protein_xs, 'proteins', protein_ys, 'p_levels')
+        protein_df = make_df(protein_xs, 'seqs', protein_ys, 'p_levels')
         return protein_df
 
 

@@ -32,8 +32,6 @@ hydro_values = {'I':4.92, 'L':4.92, 'V':4.04, 'P':2.98, 'F':2.98, 'M':2.35,
 def make_hphob_matrix():
 
     csv_labels = list(hydro_values.keys())
-    print(csv_labels)
-
 
     def difference_matrix(values):
         os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
@@ -81,9 +79,14 @@ def base_to_one_hot(seqs, encode_dict):
 
     return newcol
 
+def encode_o_h(data, encode_dict):
+    data_one_hots = base_to_one_hot(data['seqs'].tolist(), encode_dict.to_dict('list'))
+    one_hot_series = pd.Series(data_one_hots)
+    data['one_hots'] = one_hot_series.values
+
+    return data
 
 def main():
-
     os.chdir('/Users/kateharline/Desktop/buckler-lab')
     '''
     train/test synthetic data
@@ -93,7 +96,7 @@ def main():
     l = 400
     n = 10000
 
-    data = c.get_example('protein', n, l)
+    synth = c.get_example('protein', n, l)
     heavy_As = c.get_example('heavy_As', n, l)
 
     encode_dict = load_data('box-data/protein_onehot.csv')
@@ -108,11 +111,10 @@ def main():
     '''
 
     # convert the fasta file to one hot vectors
-    data_one_hots = base_to_one_hot(data['protein_seqs'].tolist(), encode_dict.to_dict('list'))
-    one_hot_series = pd.Series(data_one_hots)
-    data['one_hots'] = one_hot_series.values
+    synth_o_h = encode_o_h(synth, encode_dict)
+    a_o_h = encode_o_h(heavy_As, encode_dict)
 
-    return data
+    return (synth_o_h, a_o_h)
 
 
 if __name__ == '__main__':
