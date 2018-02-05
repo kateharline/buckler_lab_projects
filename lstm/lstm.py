@@ -9,9 +9,11 @@ from keras.preprocessing import sequence
 # fix random seed for reproducibility
 
 def main():
-    # run data in to synthesize or load data
+    # load protein table + embedding matrices
     protein_seq = datain.main()
-
+    blosum_62 = datain.load_data('box-data/BLOSUM62.csv')
+    eigen = datain.load_data('box-data/protein_eigen.csv')
+    hphob = datain.load_data('box-data/protein_hphob.csv')
 
 
 if __name__ == '__main__':
