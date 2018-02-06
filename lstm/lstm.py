@@ -1,5 +1,9 @@
 import numpy as np
 import datain
+import os
+
+# prevent warnings about CPU extensions
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
@@ -9,20 +13,26 @@ from keras.preprocessing import sequence
 # fix random seed for reproducibility
 np.random.seed(7)
 
-def make_model(X, max_length):
+def make_model(X, max_length, seq_type):
     '''
     instantiate keras model
     :param X: np array of x values
     :param max_length: int max length you want to embed
+    :param sequence type: string na (mucleic acid) or protein
     :return: keras model object
     '''
+    # switch
+    oh_lengths = {'protein':21, 'na':4}
+    oh_length = oh_lengths[seq_type]
+
+    print('length '+str(oh_length))
 
     # instantiate the model
     embedding_vector_length = 32
 
     model = Sequential()
-    model.add(Embedding(len(X), embedding_vector_length, input_length=max_length))
-    model.add(LSTM(100))
+    # model.add(Embedding(21, embedding_vector_length, input_length=max_length))
+    model.add(LSTM(100, input_dim=oh_length))
     model.add(Dense(1, activation='relu'))
     model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
 
@@ -37,7 +47,7 @@ def fit_and_evaluate(model, X_train, Y_train, X_test, Y_test):
     :param Y_test: np array
     :return: score data from keras
     '''
-    model.fit(X_train, Y_train, nb_epoch=3, batch_size=64)
+    model.fit(X_train, Y_train, epochs=3, batch_size=64)
     scores = model.evaluate(X_test, Y_test, verbose=0)
     return scores
 
@@ -48,8 +58,8 @@ def extract_x_y(data):
     :return: np arrays of x and y data
     '''
     # slice out just one hot vectors and protein levels
-    dict = data.loc[:, ['seqs', 'p_levels']].to_dict('list')
-    x = np.array(dict['seqs'])
+    dict = data.loc[:, ['one_hots', 'p_levels']].to_dict('list')
+    x = np.array(dict['one_hots'])
     y = np.array(dict['p_levels'])
 
     return x, y
@@ -64,12 +74,12 @@ def main():
     # set the longest possible length to pad to (may want to automatically compute in future
     max_length = 400
     X_train = sequence.pad_sequences(X_train, maxlen=max_length)
-    model = make_model(X_train, max_length)
+    model = make_model(X_train, max_length, 'protein')
 
     print('Model summary '+str(model.summary()))
 
     scores = fit_and_evaluate(model, X_train, Y_train, X_test, Y_test)
-    print('Accuracy: %.2f%% ' % (scores[1*100]))
+    print('Accuracy: %.2f%% ' % (scores[1]*100))
 
 
 

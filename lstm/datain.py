@@ -67,6 +67,17 @@ def make_hphob_matrix():
 
     matrix.to_csv(path_or_buf='protein_hphob.csv')
 
+def float_to_rank():
+    '''
+    convert dictionary of protein hphob values to integers based on rank
+    :return: NA, output to txt file
+    '''
+    hphob_values = {'I': 4.92, 'L': 4.92, 'V': 4.04, 'P': 2.98, 'F': 2.98, 'M': 2.35,
+                    'W': 2.33, 'A': 1.81, 'C': 1.28, 'G': 0.94, 'Y': -0.14, 'T': -2.57,
+                    'S': -3.40, 'H': -4.66, 'Q': -5.54, 'K': -5.55, 'N': -6.64, 'E': -6.81,
+                    'D': -8.72, 'R': -14.92, '*': float('-inf')}
+
+
 ########---------actual module code--------------############
 
 
@@ -142,11 +153,19 @@ def encode_o_h(data, encode_dict):
     return data
 
 def encode_hphob(data):
+    '''
+    preprocess protein data for embedding, convert amino acid bases to integers based on hydrophobicity
+    :param data: dataframe with protein sequences and expression values
+    :return: the same dataframe with a new int array encoding of the proteins
+    '''
     hphob_values = {'I': 4.92, 'L': 4.92, 'V': 4.04, 'P': 2.98, 'F': 2.98, 'M': 2.35,
                     'W': 2.33, 'A': 1.81, 'C': 1.28, 'G': 0.94, 'Y': -0.14, 'T': -2.57,
                     'S': -3.40, 'H': -4.66, 'Q': -5.54, 'K': -5.55, 'N': -6.64, 'E': -6.81,
-                    'D': -8.72, 'R': -14.92}
+                    'D': -8.72, 'R': -14.92, '*':0}
 
+    protein_seqs = data['seqs'].tolist()
+    hphob_encoding = [[hphob_values[base] for base in seq ] for seq in protein_seqs]
+    data['hphob_encode'] = pd.Series(hphob_encoding).values
 
     return data
 
@@ -163,11 +182,10 @@ def main():
     heavy_As = c.get_example('heavy_As', n, l)
     encode_dict = load_data('box-data/protein_onehot.csv')
 
-    # convert the fasta file to one hot vectors
-    synth_o_h = encode_o_h(synth, encode_dict)
-    a_o_h = encode_o_h(heavy_As, encode_dict)
+    synth_encoded = encode_o_h(synth, encode_dict)
+    a_encoded = encode_o_h(heavy_As, encode_dict)
 
-    return (synth_o_h, a_o_h)
+    return (synth_encoded, a_encoded)
 
 '''
     for when I actually want to use real data
