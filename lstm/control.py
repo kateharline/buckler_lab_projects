@@ -8,7 +8,14 @@ import random
 import pandas as pd
 
 def make_xs(n, l, t, w=None):
-    '''randomly generate n number of of type t sequences of length l'''
+    '''
+    randomly generate sequences
+    :param n: int number of sequences
+    :param l: int maximum length of each sequence
+    :param t: list base/residue characters
+    :param w: (optional) list of weights for a given base or residue
+    :return: list of sequences
+    '''
     seqs = []
     for i in range(n):
         # s = ''.join(random.choices(t) for _ in range(l))
@@ -17,16 +24,24 @@ def make_xs(n, l, t, w=None):
 
     return seqs
 
-
 def make_ys(seqs, rules):
-    '''translate random sequences into expression values based on rules above'''
+    '''
+    score synthetic sequences for expression values based on arbitrary rules
+    :param seqs: list of sequences
+    :param rules: list of functions to use to score the sequences
+    :return: list with an expression score for each sequence
+    '''
     scores = []
 
     for seq in seqs:
+        score = 0
         for rule in rules:
-            scores.append(rule(seq))
+            score += rule(seq)
+        scores.append(score)
 
     return scores
+
+######### rules
 
 def rule_1(seq):
     a_count = seq.count('A')
@@ -40,6 +55,8 @@ def rule_2(seq):
 
     return score
 
+##############
+
 def make_df(x, x_title, y, y_title):
 
     df = pd.DataFrame(data={x_title : x, y_title : y})
@@ -47,6 +64,13 @@ def make_df(x, x_title, y, y_title):
     return df
 
 def get_example(type, n, l):
+    '''
+    create synthetic datasets for machine learning
+    :param type: string molecule you want to make (protein, dna, rna)
+    :param n: int number of sequences to generate
+    :param l: int maximum sequence length
+    :return: dataframe of synthesized expression values and sequences
+    '''
 
     if type == 'protein':
         protein_xs = make_xs(n, l, ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',

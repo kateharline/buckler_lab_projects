@@ -10,7 +10,12 @@ from keras.preprocessing import sequence
 np.random.seed(7)
 
 def make_model(X, max_length):
-
+    '''
+    instantiate keras model
+    :param X: np array of x values
+    :param max_length: int max length you want to embed
+    :return: keras model object
+    '''
 
     # instantiate the model
     embedding_vector_length = 32
@@ -24,14 +29,27 @@ def make_model(X, max_length):
     return model
 
 def fit_and_evaluate(model, X_train, Y_train, X_test, Y_test):
+    '''
+    :param model: keras model
+    :param X_train: np array
+    :param Y_train: np array
+    :param X_test: np array
+    :param Y_test: np array
+    :return: score data from keras
+    '''
     model.fit(X_train, Y_train, nb_epoch=3, batch_size=64)
     scores = model.evaluate(X_test, Y_test, verbose=0)
     return scores
 
 def extract_x_y(data):
+    '''
+    reformat dataframe values into usable np arrays
+    :param data: dataframe of sequence data and expression values
+    :return: np arrays of x and y data
+    '''
     # slice out just one hot vectors and protein levels
-    dict = data.loc[:, ['one_hots', 'p_levels']].to_dict('list')
-    x = np.array(dict['one_hots'])
+    dict = data.loc[:, ['seqs', 'p_levels']].to_dict('list')
+    x = np.array(dict['seqs'])
     y = np.array(dict['p_levels'])
 
     return x, y

@@ -9,6 +9,10 @@ import control as c
 
 ####--------------making matrices-------------#############
 def txt_to_csv():
+    '''
+    convert txt file to csv to load as a dataframe etc
+    :return: NA, outputs file as csv
+    '''
 
     os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
 
@@ -23,17 +27,27 @@ def txt_to_csv():
 
 
 ##### make hydrophobicity matrix -- how to denote *
-hydro_values = {'I':4.92, 'L':4.92, 'V':4.04, 'P':2.98, 'F':2.98, 'M':2.35,
-                'W':2.33, 'A':1.81, 'C':1.28, 'G':0.94, 'Y':-0.14, 'T':-2.57,
-                'S':-3.40, 'H':-4.66, 'Q':-5.54, 'K':-5.55, 'N':-6.64, 'E':-6.81,
-                'D':-8.72, 'R':-14.92}
+
 
 # column names for data frame
 def make_hphob_matrix():
+    '''
+    compute differences in hydrophobicity between amino acids
+    :return: NA
+    '''
+    hydro_values = {'I': 4.92, 'L': 4.92, 'V': 4.04, 'P': 2.98, 'F': 2.98, 'M': 2.35,
+                    'W': 2.33, 'A': 1.81, 'C': 1.28, 'G': 0.94, 'Y': -0.14, 'T': -2.57,
+                    'S': -3.40, 'H': -4.66, 'Q': -5.54, 'K': -5.55, 'N': -6.64, 'E': -6.81,
+                    'D': -8.72, 'R': -14.92}
 
     csv_labels = list(hydro_values.keys())
 
     def difference_matrix(values):
+        '''
+        compute pairwise differences for relational data
+        :param values: float values to find differences between
+        :return: matrix of differences (2D array)
+        '''
         os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
         vals = list(values.values())
 
@@ -57,15 +71,28 @@ def make_hphob_matrix():
 
 
 def load_data(filename, delim=','):
+    '''
+    import data as pandas dataframe
+    :param filename: string name of the file
+    :param delim: string delimiter
+    :return: dataframe version of the given file
+    useful functions to check state of data
+    # print(data.head(10))
+    # print('data types '+str(data.dtypes))
+    '''
     """read in the csv of gene sequences and RNAseq expression values
        returns the data as a pandas dataframe"""
     data = pd.read_csv(filepath_or_buffer=filename, delimiter=delim)
-    # print(data.head(10))
-    # print('data types '+str(data.dtypes))
+
     return data
 
 
 def my_max(seqs):
+    '''
+    determine the longest sequence
+    :param seqs: list of string sequences
+    :return: integer length of the longest sequence
+    '''
     max_string = ''
     max_len = len(max_string)
 
@@ -78,12 +105,12 @@ def my_max(seqs):
 
 
 def base_to_one_hot(seqs, encode_dict):
-    """encode input data as one-hot vector
-       adds one hot vector column to dataframe
-
-    use didctionary of one hots to propagate np array
-    check for seq length and pad the rest """
-
+    '''
+    one hot helper function
+    :param seqs: list of the sequences
+    :param encode_dict: dictionary that converts sequence bases/residues to one hot vectors
+    :return: list of one hot encodings
+    '''
 
     # max length of sequence
     my_max_1 = my_max(seqs)
@@ -102,10 +129,24 @@ def base_to_one_hot(seqs, encode_dict):
     return newcol
 
 def encode_o_h(data, encode_dict):
-
+    '''
+    make one hot encodings
+    :param data: dataframe contaning sequences and expression values
+    :param encode_dict: dictionary that converts sequence bases/residues to one hot vectors
+    :return: the dataframe with a new column of one hot encodings
+    '''
     data_one_hots = base_to_one_hot(data['seqs'].tolist(), encode_dict.to_dict('list'))
     one_hot_series = pd.Series(data_one_hots)
     data['one_hots'] = one_hot_series.values
+
+    return data
+
+def encode_hphob(data):
+    hphob_values = {'I': 4.92, 'L': 4.92, 'V': 4.04, 'P': 2.98, 'F': 2.98, 'M': 2.35,
+                    'W': 2.33, 'A': 1.81, 'C': 1.28, 'G': 0.94, 'Y': -0.14, 'T': -2.57,
+                    'S': -3.40, 'H': -4.66, 'Q': -5.54, 'K': -5.55, 'N': -6.64, 'E': -6.81,
+                    'D': -8.72, 'R': -14.92}
+
 
     return data
 
