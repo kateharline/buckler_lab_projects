@@ -6,8 +6,8 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 from keras.models import Sequential
-from keras.layers import Dense, LSTM
-from keras.layers.embeddings import Embedding
+from keras.layers import Dense, Conv2D
+# from keras.layers.embeddings import Embedding
 from keras.preprocessing import sequence
 
 # fix random seed for reproducibility
@@ -32,7 +32,7 @@ def make_model(X, max_length, seq_type):
 
     model = Sequential()
     # model.add(Embedding(21, embedding_vector_length, input_length=max_length))
-    model.add(LSTM(100, input_shape=(None, oh_length)))
+    model.add(Conv2D(input_shape=(max_length, 21), filters=32, kernel_size=2))
     model.add(Dense(1, activation='relu'))
     model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
 
@@ -85,7 +85,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-# blosum_62 = datain.load_data('box-data/BLOSUM62.csv')
-# eigen = datain.load_data('box-data/protein_eigen.csv')
-# hphob = datain.load_data('box-data/protein_hphob.csv')
