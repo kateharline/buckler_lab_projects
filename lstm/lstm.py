@@ -10,13 +10,13 @@ from keras.preprocessing import sequence
 np.random.seed(7)
 
 def make_model(X, max_length):
-    X_train = sequence.pad_sequences(X, maxlen=max_length)
+
 
     # instantiate the model
     embedding_vector_length = 32
 
     model = Sequential()
-    model.add(Embedding(len(X_train), embedding_vector_length, input_length=max_length))
+    model.add(Embedding(len(X), embedding_vector_length, input_length=max_length))
     model.add(LSTM(100))
     model.add(Dense(1, activation='relu'))
     model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
@@ -24,16 +24,15 @@ def make_model(X, max_length):
     return model
 
 def fit_and_evaluate(model, X_train, Y_train, X_test, Y_test):
-    print('x train '+str(X_train))
-    model.fit(X_train, Y_train)
-    scores = model.evaluate(X_test, Y_test)
+    model.fit(X_train, Y_train, nb_epoch=3, batch_size=64)
+    scores = model.evaluate(X_test, Y_test, verbose=0)
     return scores
 
 def extract_x_y(data):
     # slice out just one hot vectors and protein levels
     dict = data.loc[:, ['one_hots', 'p_levels']].to_dict('list')
-    x = dict['one_hots']
-    y = dict['p_levels']
+    x = np.array(dict['one_hots'])
+    y = np.array(dict['p_levels'])
 
     return x, y
 
@@ -46,7 +45,7 @@ def main():
 
     # set the longest possible length to pad to (may want to automatically compute in future
     max_length = 400
-
+    X_train = sequence.pad_sequences(X_train, maxlen=max_length)
     model = make_model(X_train, max_length)
 
     print('Model summary '+str(model.summary()))

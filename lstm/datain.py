@@ -57,7 +57,6 @@ def make_hphob_matrix():
 
 
 def load_data(filename, delim=','):
-
     """read in the csv of gene sequences and RNAseq expression values
        returns the data as a pandas dataframe"""
     data = pd.read_csv(filepath_or_buffer=filename, delimiter=delim)
@@ -66,20 +65,44 @@ def load_data(filename, delim=','):
     return data
 
 
+def my_max(seqs):
+    max_string = ''
+    max_len = len(max_string)
+
+    for seq in seqs:
+        if len(seq) > max_len:
+            max_string = seq
+            max_len = len(max_string)
+
+    return max_len
+
+
 def base_to_one_hot(seqs, encode_dict):
     """encode input data as one-hot vector
-       adds one hot vector column to dataframe """
+       adds one hot vector column to dataframe
+
+    use didctionary of one hots to propagate np array
+    check for seq length and pad the rest """
+
+
+    # max length of sequence
+    my_max_1 = my_max(seqs)
+
     newcol = []
 
     for seq in seqs:
-        one_hot = []
-        for letter in seq:
-            one_hot.append(encode_dict[letter])
-        newcol.append(one_hot)
+        seq_as_o_h = np.zeros((my_max_1, 21))
+        # padding check
+        for i in range(len(seq)):
+            one_hot = encode_dict[seq[i]]
+            for j in range(0,21):
+                seq_as_o_h[i][j] = one_hot[j]
+        newcol.append(seq_as_o_h)
 
     return newcol
 
 def encode_o_h(data, encode_dict):
+
     data_one_hots = base_to_one_hot(data['seqs'].tolist(), encode_dict.to_dict('list'))
     one_hot_series = pd.Series(data_one_hots)
     data['one_hots'] = one_hot_series.values
@@ -95,20 +118,9 @@ def main():
     # how long is the sequence and how many are there... for synthetic data
     l = 400
     n = 10000
-
     synth = c.get_example('protein', n, l)
     heavy_As = c.get_example('heavy_As', n, l)
-
     encode_dict = load_data('box-data/protein_onehot.csv')
-
-    '''
-        for when I actually want to use real data
-
-        # load the data from file
-        x_data = load_data('X.csv')
-        encode_dict = load_data('protein_onehot.csv')
-
-    '''
 
     # convert the fasta file to one hot vectors
     synth_o_h = encode_o_h(synth, encode_dict)
@@ -116,6 +128,14 @@ def main():
 
     return (synth_o_h, a_o_h)
 
+'''
+    for when I actually want to use real data
+
+    # load the data from file
+    x_data = load_data('X.csv')
+    encode_dict = load_data('protein_onehot.csv')
+
+'''
 
 if __name__ == '__main__':
     main()
