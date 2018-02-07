@@ -74,7 +74,7 @@ def main():
     data = datain.main()
 
     X_train, Y_train = extract_x_y(data[0])
-    X_test, Y_test = extract_x_y(data[1])
+    X_test, Y_test = extract_x_y(data[0])
 
     # set the longest possible length to pad to (may want to automatically compute in future
     max_length = 399
