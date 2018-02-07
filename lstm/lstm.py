@@ -6,7 +6,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 from keras.models import Sequential
-from keras.layers import Dense, LSTM
+from keras.layers import Dense, LSTM, Dropout
 from keras.layers.embeddings import Embedding
 from keras.preprocessing import sequence
 
@@ -32,7 +32,8 @@ def make_model(X, max_length, seq_type):
 
     model = Sequential()
     # model.add(Embedding(21, embedding_vector_length, input_length=max_length))
-    model.add(LSTM(100, input_shape=(None, oh_length)))
+    model.add(LSTM(128, input_shape=(None, oh_length)))
+    model.add(Dropout(0.5))
     model.add(Dense(1, activation='relu'))
     model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
 
@@ -47,8 +48,8 @@ def fit_and_evaluate(model, X_train, Y_train, X_test, Y_test):
     :param Y_test: np array
     :return: score data from keras
     '''
-    model.fit(X_train, Y_train, epochs=3, batch_size=64)
-    scores = model.evaluate(X_test, Y_test, verbose=0)
+    model.fit(X_train, Y_train, epochs=10, batch_size=16)
+    scores = model.evaluate(X_test, Y_test, verbose=0, batch_size=16)
     return scores
 
 def extract_x_y(data):
