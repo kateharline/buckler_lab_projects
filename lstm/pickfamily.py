@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import plotly.plotly as py
+import walley as w
+import os
 
 def get_avg_expression(families, exp_values):
     '''
@@ -36,18 +38,35 @@ def get_sizes(families):
     return lengths
 
 
-def plot_size_distribution(avgs):
+def plot_exp_distribution(avgs):
 
     plt.hist(avgs)
     plt.xlabel('Average Expression')
     plt.ylabel('Frequency Among Families')
     plt.title('Expression Distribution Across Gene Families')
-    fig = plt.gcf()
-
-    plot_url = py.plot_mpl(fig, filename='family-exp')
+    plt.show()
 
     return None
 
+def plot_size_distribution(sizes):
+
+    plt.hist(sizes)
+    plt.xlabel('Size')
+    plt.ylabel('Frequency')
+    plt.title('Size of families')
+    plt.show()
+
+    return None
+
+def plot_relationship(sizes, avgs):
+
+    plt.plot(sizes, avgs)
+    plt.xlabel('Size')
+    plt.ylabel('Average Expression within Family')
+    plt.title('Realtionship Between Family Size and Expression')
+    plt.show()
+
+    return None
 
 def optimize(avgs, sizes, num_indices):
     '''
@@ -62,3 +81,22 @@ def optimize(avgs, sizes, num_indices):
 
     return family_indices
 
+def main():
+    os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
+
+    selected_tissue = 'Leaf_Zone_3_Growth'
+
+    v3_to_v4, genes = w.make_V3_converter('v3_v4_xref.txt')
+    protein_DF, genes = w.load_protein_data(genes, 'Zea_mays.AGPv4.pep.longest.pkl', 'v4_Protein_meanLogExpression.csv')
+    gene_families = w.define_families('gene_families.npy', 'nodes.npy', protein_DF, genes, v3_to_v4)
+
+    # start here, formatting of protein dataframe, feeding in as list (probably want helper function)
+    avgs = get_avg_expression(gene_families, protein_DF[selected_tissue].tolist())
+    sizes = get_sizes(gene_families)
+
+    plot_exp_distribution(avgs)
+    plot_size_distribution(sizes)
+    plot_relationship(sizes, avgs)
+
+if __name__ == '__main__':
+    main()

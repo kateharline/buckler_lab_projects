@@ -29,43 +29,53 @@ def unlist(list_object):
 #########################################################
 # Data
 #########################################################
-# v3 to v4
-v3_to_v4_DF = pd.read_table(v3_to_v4_file)
-v3_to_v4_DF.index = v3_to_v4_DF['v3_gene_model']
-v3_to_v4 = v3_to_v4_DF['v4_gene_model'].to_dict()
+def make_V3_converter(v3_to_v4_file):
+    # v3 to v4
+    v3_to_v4_DF = pd.read_table(v3_to_v4_file)
+    v3_to_v4_DF.index = v3_to_v4_DF['v3_gene_model']
+    v3_to_v4 = v3_to_v4_DF['v4_gene_model'].to_dict()
 
-genes = set(v3_to_v4.values())
+    genes = set(v3_to_v4.values())
 
-# Protein sequence information
-proteinSequences = pickle.load(open(proteinSequence_file, 'rb'))
-proteinSequence_DF = pd.DataFrame({'sequence': list(proteinSequences.values())},
-                                  index=proteinSequences.keys())
+    return v3_to_v4, genes
 
-genes = genes.intersection(set(proteinSequence_DF.index))
+def load_protein_data(genes, proteinSequence_file, proteinLevel_file):
+    # Protein sequence information
+    proteinSequences = pickle.load(open(proteinSequence_file, 'rb'))
+    proteinSequence_DF = pd.DataFrame({'sequence': list(proteinSequences.values())},
+                                      index=proteinSequences.keys())
 
-# Protein levels
-proteinLevel_DF = pd.read_csv(proteinLevel_file)
-proteinLevel_DF = proteinLevel_DF[proteinLevel_DF['duplicated_v4'] != True]
-proteinLevel_DF = proteinLevel_DF[proteinLevel_DF['v4_geneIDs'] != 'None']
-proteinLevel_DF.index = proteinLevel_DF['v4_geneIDs']
+    genes = genes.intersection(set(proteinSequence_DF.index))
 
-genes = genes.intersection(set(proteinLevel_DF.index))
+    # Protein levels
+    proteinLevel_DF = pd.read_csv(proteinLevel_file)
+    proteinLevel_DF = proteinLevel_DF[proteinLevel_DF['duplicated_v4'] != True]
+    proteinLevel_DF = proteinLevel_DF[proteinLevel_DF['v4_geneIDs'] != 'None']
+    proteinLevel_DF.index = proteinLevel_DF['v4_geneIDs']
+
+    genes = genes.intersection(set(proteinLevel_DF.index))
+
+    return proteinLevel_DF, genes
 
 #########################################################
 # Gene families
 #########################################################
 # Gene family memberships
-index_families = np.load(index_family_file)
+def define_families(index_family_file, node_file, proteinLevel_DF, genes, v3_to_v4):
 
-gene_nodes = np.load(node_file)
+    index_families = np.load(index_family_file)
 
-gene_families = [[v3_to_v4[gene_nodes[i]] for i in gene_tuple if gene_nodes[i] in genes] for gene_tuple in index_families]
+    gene_nodes = np.load(node_file)
 
-# Add singletons to gene families
-in_family = set([gene for gene_tuple in gene_families for gene in gene_tuple])
-singletons = set(genes) - in_family
+    gene_families = [[v3_to_v4[gene_nodes[i]] for i in gene_tuple if gene_nodes[i] in genes] for gene_tuple in index_families]
 
-gene_families += [[singleton] for singleton in singletons]
+    # Add singletons to gene families
+    in_family = set([gene for gene_tuple in gene_families for gene in gene_tuple])
+    singletons = set(genes) - in_family
+
+    gene_families += [[singleton] for singleton in singletons]
+
+    return gene_families
 
 # Splits
 families_cal, families_test = train_test_split(gene_families, test_size=0.15, random_state=0) # ----change this line to choose
