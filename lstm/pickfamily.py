@@ -84,19 +84,22 @@ def optimize(avgs, sizes, num_indices):
 def main():
     os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
 
-    selected_tissue = 'Leaf_Zone_3_Growth'
+    selected_tissues = ['Leaf_Zone_3_Growth']
 
     v3_to_v4, genes = w.make_V3_converter('v3_v4_xref.txt')
     protein_DF, genes = w.load_protein_data(genes, 'Zea_mays.AGPv4.pep.longest.pkl', 'v4_Protein_meanLogExpression.csv')
-    gene_families = w.define_families('gene_families.npy', 'nodes.npy', protein_DF, genes, v3_to_v4)
+    gene_families = w.define_families('gene_families.npy', 'nodes.npy', genes, v3_to_v4)
+    protein_DF_selected = protein_DF[selected_tissues]
 
+    '''
     # start here, formatting of protein dataframe, feeding in as list (probably want helper function)
-    avgs = get_avg_expression(gene_families, protein_DF[selected_tissue].tolist())
+    avgs = get_avg_expression(gene_families, protein_DF[selected_tissues].tolist())
     sizes = get_sizes(gene_families)
 
     plot_exp_distribution(avgs)
     plot_size_distribution(sizes)
     plot_relationship(sizes, avgs)
+    '''
 
 if __name__ == '__main__':
     main()

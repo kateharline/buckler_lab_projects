@@ -45,7 +45,7 @@ def load_protein_data(genes, proteinSequence_file, proteinLevel_file):
     proteinSequence_DF = pd.DataFrame({'sequence': list(proteinSequences.values())},
                                       index=proteinSequences.keys())
 
-    genes = genes.intersection(set(proteinSequence_DF.index))
+    genes1 = genes.intersection(set(proteinSequence_DF.index))
 
     # Protein levels
     proteinLevel_DF = pd.read_csv(proteinLevel_file)
@@ -53,80 +53,74 @@ def load_protein_data(genes, proteinSequence_file, proteinLevel_file):
     proteinLevel_DF = proteinLevel_DF[proteinLevel_DF['v4_geneIDs'] != 'None']
     proteinLevel_DF.index = proteinLevel_DF['v4_geneIDs']
 
-    genes = genes.intersection(set(proteinLevel_DF.index))
+    genes1 = genes1.intersection(set(proteinLevel_DF.index))
 
-    return proteinLevel_DF, genes
+    return proteinLevel_DF, genes1
 
 #########################################################
 # Gene families
 #########################################################
 # Gene family memberships
-def define_families(index_family_file, node_file, proteinLevel_DF, genes, v3_to_v4):
+def define_families(index_family_file, node_file, genes, v3_to_v4):
 
     index_families = np.load(index_family_file)
-
     gene_nodes = np.load(node_file)
 
-    gene_families = [[v3_to_v4[gene_nodes[i]] for i in gene_tuple if gene_nodes[i] in genes] for gene_tuple in index_families]
-
+    print(gene_nodes[0])
+    print(genes)
+    gene_families = [[x = v3_to_v4[gene_nodes[i]]] for i in tuple if x in genes ] for tuple in index_families
     # Add singletons to gene families
     in_family = set([gene for gene_tuple in gene_families for gene in gene_tuple])
     singletons = set(genes) - in_family
 
     gene_families += [[singleton] for singleton in singletons]
-
     return gene_families
 
 # Splits
-families_cal, families_test = train_test_split(gene_families, test_size=0.15, random_state=0) # ----change this line to choose
-    # most different families
-families_train, families_val = train_test_split(families_cal, test_size=0.20, random_state=1)
+def make_splits(gene_families):
 
-genes_train = unlist(families_train)
-genes_val = unlist(families_val)
-genes_test = unlist(families_test)
+    families_cal, families_test = train_test_split(gene_families, test_size=0.15, random_state=0) # ----change this line to choose
+        # most different families
+    families_train, families_val = train_test_split(families_cal, test_size=0.20, random_state=1)
+
+    genes_train = unlist(families_train)
+    genes_val = unlist(families_val)
+    genes_test = unlist(families_test)
+
+    return genes_test, genes_train, genes_val
 
 #########################################################
 # Input
 #########################################################
 # Gene groups
-template = pd.DataFrame({'group': 'train'}, index=genes)
-template['group'][[gene in genes_val for gene in genes]] = 'val'
-template['group'][[gene in genes_test for gene in genes]] = 'test'
+def format_final_df(genes, proteinLevel_DF, proteinSequence_DF, genes_val, genes_test):
+    template = pd.DataFrame({'group': 'train'}, index=genes)
+    template['group'][[gene in genes_val for gene in genes]] = 'val'
+    template['group'][[gene in genes_test for gene in genes]] = 'test'
 
-# X
-X = pd.concat([
-    template,
-    proteinSequence_DF.loc[genes, 'sequence']
-], axis=1)
-X.columns = ['group', 'TSS_promoter', 'ATG_promoter', 'transcript_sequence', 'protein_sequence']
-X.index.name = 'gene_id'
+    # X
+    X = pd.concat([
+        template,
+        proteinSequence_DF.loc[genes, 'sequence']
+    ], axis=1)
+    X.columns = ['group', 'TSS_promoter', 'ATG_promoter', 'transcript_sequence', 'protein_sequence']
+    X.index.name = 'gene_id'
 
-# y
-y = pd.concat([
-    template,
-    proteinLevel_DF.loc[genes, selected_tissues]
-], axis=1)
-y.columns = unlist([
-    ['group'],
-    ['RNA_'+tissue for tissue in selected_tissues],
-    ['Protein_'+tissue for tissue in selected_tissues]])
-y.index.name = 'gene_id'
+    # y
+    y = pd.concat([
+        template,
+        proteinLevel_DF.loc[genes, selected_tissues]
+    ], axis=1)
+    y.columns = unlist([
+        ['group'],
+        ['RNA_'+tissue for tissue in selected_tissues],
+        ['Protein_'+tissue for tissue in selected_tissues]])
+    y.index.name = 'gene_id'
 
-# Saving
-X.to_csv('X.csv')
-pickle.dump(X, open('X.pkl', 'wb'))
+    # Saving
+    X.to_csv('X.csv')
+    pickle.dump(X, open('X.pkl', 'wb'))
 
-y.to_csv('y.csv')
-pickle.dump(y, open('y.pkl', 'wb'))
+    y.to_csv('y.csv')
+    pickle.dump(y, open('y.pkl', 'wb'))
 
-# # Promoter sequences
-# promoterSequences = list(promoterSequence_DF.loc[genes, 'sequence'])
-#
-# base2vec = {'A': [1, 0, 0, 0], 'C': [0, 1, 0, 0], 'G': [0, 0, 1, 0], 'T': [0, 0, 0, 1], 'N': [0, 0, 0, 0]}
-# X_promoter = {index: [base2vec[base] for base in list(seq)]
-#               for index, seq in zip(promoterSequence_DF['gene_id'], promoterSequence_DF['sequence'])}
-#
-# X_promoter_train = {gene: X_promoter[gene] for gene in genes_train}
-# X_promoter_val = {gene: X_promoter[gene] for gene in genes_val}
-# X_promoter_test = {gene: X_promoter[gene] for gene in genes_test}
