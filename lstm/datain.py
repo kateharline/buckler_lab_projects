@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 import os
-from sklearn import preprocessing as skp
+import pickle
 
 # import control datasets for testing
 import control as c
@@ -174,7 +174,6 @@ def main():
     '''
     train/test synthetic data
     
-    '''
     # how long is the sequence and how many are there... for synthetic data
     l = 400
     n = 10000
@@ -186,15 +185,14 @@ def main():
     a_encoded = encode_o_h(heavy_As, encode_dict)
 
     return (synth_encoded, a_encoded)
-
-'''
-    for when I actually want to use real data
+    '''
 
     # load the data from file
-    x_data = load_data('X.csv')
+    x_data = pickle.load(open('X.pkl', 'rb'))
+    y_data = pickle.load(open('y.pkl', 'rb'))
     encode_dict = load_data('protein_onehot.csv')
 
-'''
+    
 
 if __name__ == '__main__':
     main()

@@ -23,6 +23,7 @@ def get_avg_expression(families, exp_values, tissues):
     return averages
 
 
+
 def get_sizes(families):
     '''
     return the size of each family
@@ -33,8 +34,6 @@ def get_sizes(families):
 
     for i, family in enumerate(families):
         lengths[i] = len(family)
-
-    print('Average family size is '+str(np.mean(lengths)))
 
     return lengths
 
@@ -63,13 +62,17 @@ def plot_relationship(sizes, avgs):
     plt.show()
     return None
 
-def pick_families(fams):
+def pick_families(fams, avgs, sizes):
     '''
-    
-    :param fams:
-    :return:
+    pick families for overfitting
+    :param fams: all gene families
+    :return: families as input to the model
     '''
     selected_fams = []
+
+    for i, family in enumerate(fams):
+        if sizes[i] > 150 or avgs[i] > 8:
+            selected_fams.append(family)
 
     return selected_fams
 
@@ -100,18 +103,24 @@ def main():
     genes = w.load_transcript_level(genes, 'v4_Transcripts_meanLogExpression.csv')[0]
 
     # load actual data to model
-    protein_DF, genes = w.load_protein_data(genes, 'Zea_mays.AGPv4.pep.longest.pkl', 'v4_Protein_meanLogExpression.csv')
+    protein_DF, proteinSequence_DF, genes = w.load_protein_data(genes, 'Zea_mays.AGPv4.pep.longest.pkl', 'v4_Protein_meanLogExpression.csv')
     gene_families = w.define_families('gene_families.npy', 'nodes.npy', genes, v3_to_v4)
     protein_DF_selected = protein_DF[selected_tissues]
 
-    # start here, formatting of protein dataframe, feeding in as list (probably want helper function)
+    # analyze info about gene families to make a subset
     avgs = get_avg_expression(gene_families, protein_DF[selected_tissues].to_dict(), selected_tissues)
 
     sizes = get_sizes(gene_families)
 
-    plot_exp_distribution(avgs[0], 10)
-    plot_size_distribution(sizes, 10)
-    plot_relationship(sizes, avgs[0])
+    # plot_exp_distribution(avgs[0], 10)
+    # plot_size_distribution(sizes, 10)
+    # plot_relationship(sizes, avgs[0])
+
+    smaller_fams = pick_families(gene_families, avgs[0], sizes) # 358 families
+
+    # convert subset to usable dataframe for making models
+    genes_test, genes_train, genes_val = w.make_splits(smaller_fams)
+    w.format_final_df(genes, protein_DF, proteinSequence_DF, genes_val, genes_test)
 
 
 if __name__ == '__main__':

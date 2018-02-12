@@ -92,7 +92,7 @@ def load_protein_data(genes, proteinSequence_file, proteinLevel_file):
 
     genes1 = genes1.intersection(set(proteinLevel_DF.index))
 
-    return proteinLevel_DF, genes1
+    return proteinLevel_DF, proteinSequence_DF, genes1
 
 #########################################################
 # Gene families
@@ -152,7 +152,7 @@ def format_final_df(genes, proteinLevel_DF, proteinSequence_DF, genes_val, genes
         template,
         proteinSequence_DF.loc[genes, 'sequence']
     ], axis=1)
-    X.columns = ['group', 'TSS_promoter', 'ATG_promoter', 'transcript_sequence', 'protein_sequence']
+    X.columns = ['group', 'protein_sequence']
     X.index.name = 'gene_id'
 
     # y
@@ -162,7 +162,6 @@ def format_final_df(genes, proteinLevel_DF, proteinSequence_DF, genes_val, genes
     ], axis=1)
     y.columns = unlist([
         ['group'],
-        ['RNA_'+tissue for tissue in selected_tissues],
         ['Protein_'+tissue for tissue in selected_tissues]])
     y.index.name = 'gene_id'
 
