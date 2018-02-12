@@ -65,6 +65,16 @@ def load_transcript_data(genes, transcriptSequence_file):
 
     return genes1, transcriptSequence_DF
 
+def load_transcript_level(genes, transcriptLevel_file):
+    transcriptLevel_DF = pd.read_csv(transcriptLevel_file, dtype={'v4_geneIDs':str})
+    transcriptLevel_DF = transcriptLevel_DF[transcriptLevel_DF['duplicated_v4'] != True]
+    transcriptLevel_DF = transcriptLevel_DF[transcriptLevel_DF['v4_geneIDs'] != 'None']
+    transcriptLevel_DF.index = transcriptLevel_DF['v4_geneIDs']
+
+    genes1 = genes.intersection(set(transcriptLevel_DF.index))
+
+    return genes1, transcriptLevel_DF
+
 
 def load_protein_data(genes, proteinSequence_file, proteinLevel_file):
     # Protein sequence information
@@ -88,18 +98,31 @@ def load_protein_data(genes, proteinSequence_file, proteinLevel_file):
 # Gene families
 #########################################################
 # Gene family memberships
+def remove_empties(fams):
+    '''
+    remove the empty lists that are being added to the list for some reason... if statement?
+    :param fams: list of lists with some empty lists
+    :return: list of lists without the empty lists
+    '''
+    no_empties = []
+    for fam in fams:
+        if len(fam) > 0:
+            no_empties.append(fam)
+
+    return no_empties
+
 def define_families(index_family_file, node_file, genes, v3_to_v4):
 
     index_families = np.load(index_family_file)
     gene_nodes = np.load(node_file)
 
     gene_families = [[ v3_to_v4[gene_nodes[i]] for i in tuple  if gene_nodes[i] in v3_to_v4.keys() and v3_to_v4[gene_nodes[i]] in genes] for tuple in index_families ]
+    gene_families = remove_empties(gene_families)
     # Add singletons to gene families
     in_family = set([gene for gene_tuple in gene_families for gene in gene_tuple])
     singletons = set(genes) - in_family
 
     gene_families += [[singleton] for singleton in singletons]
-
     return gene_families
 
 # Splits
