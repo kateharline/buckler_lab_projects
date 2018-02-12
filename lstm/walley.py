@@ -39,6 +39,33 @@ def make_V3_converter(v3_to_v4_file):
 
     return v3_to_v4, genes
 
+def load_promoter_data(genes, promoterSequence_file):
+    # Promoter information
+    promoterSequence_DF = pd.read_table(promoterSequence_file)
+    promoterSequence_DF.index = promoterSequence_DF['gene_id']
+
+    genes1 = genes.intersection(set(promoterSequence_DF.index))
+    return genes1, promoterSequence_DF
+
+def load_us_data(genes, upstreamSequence_file):
+    upstreamSequence_DF = pd.read_table(upstreamSequence_file)
+    upstreamSequence_DF.index = upstreamSequence_DF['gene_id']
+
+    genes1 = genes.intersection(set(upstreamSequence_DF.index))
+    return genes1, upstreamSequence_DF
+
+def load_transcript_data(genes, transcriptSequence_file):
+    transcriptSequences = pd.read_table(transcriptSequence_file)
+    transcriptSequences['gene_id'] = [tx_name.split('_')[0] for tx_name in transcriptSequences['tx_name']]
+
+    transcriptSequence_DF = transcriptSequences.sort_values(['width'], ascending=False).groupby(['gene_id']).head(1)
+    transcriptSequence_DF.index = transcriptSequence_DF['gene_id']
+
+    genes1 = genes.intersection(set(transcriptSequence_DF.index))
+
+    return genes1, transcriptSequence_DF
+
+
 def load_protein_data(genes, proteinSequence_file, proteinLevel_file):
     # Protein sequence information
     proteinSequences = pickle.load(open(proteinSequence_file, 'rb'))
@@ -66,14 +93,13 @@ def define_families(index_family_file, node_file, genes, v3_to_v4):
     index_families = np.load(index_family_file)
     gene_nodes = np.load(node_file)
 
-    print(gene_nodes[0])
-    print(genes)
-    gene_families = [[x = v3_to_v4[gene_nodes[i]]] for i in tuple if x in genes ] for tuple in index_families
+    gene_families = [[ v3_to_v4[gene_nodes[i]] for i in tuple  if gene_nodes[i] in v3_to_v4.keys() and v3_to_v4[gene_nodes[i]] in genes] for tuple in index_families ]
     # Add singletons to gene families
     in_family = set([gene for gene_tuple in gene_families for gene in gene_tuple])
     singletons = set(genes) - in_family
 
     gene_families += [[singleton] for singleton in singletons]
+
     return gene_families
 
 # Splits

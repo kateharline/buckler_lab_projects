@@ -87,6 +87,9 @@ def main():
     selected_tissues = ['Leaf_Zone_3_Growth']
 
     v3_to_v4, genes = w.make_V3_converter('v3_v4_xref.txt')
+    genes = w.load_promoter_data(genes, )[0]
+    genes = w.load_us_data(genes, )[0]
+    genes = w.load_transcript_data(genes, )[0]
     protein_DF, genes = w.load_protein_data(genes, 'Zea_mays.AGPv4.pep.longest.pkl', 'v4_Protein_meanLogExpression.csv')
     gene_families = w.define_families('gene_families.npy', 'nodes.npy', genes, v3_to_v4)
     protein_DF_selected = protein_DF[selected_tissues]
