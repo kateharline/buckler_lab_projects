@@ -23,6 +23,23 @@ def get_avg_expression(families, exp_values, tissues):
     return averages
 
 
+def get_max_exp(families, exp_values, tissues):
+    '''
+    return the average expression level for each gene family
+    :param families: list of lists where each family is a list of gene_ids
+    :param exp_values: dictionary of gene id keys and expression values
+    :return: np array of floats, avg expression for each family
+    '''
+    maxs = np.zeros((len(tissues), len(families)))
+
+    for i, tissue in enumerate(tissues):
+        for j, family in enumerate(families):
+            max_exp = 0
+            for gene in families[j]:
+                if exp_values[tissue][gene] > max_exp: max_exp = exp_values[tissue][gene]
+            maxs[i][j] = max_exp
+
+    return maxs
 
 def get_sizes(families):
     '''
@@ -38,11 +55,17 @@ def get_sizes(families):
     return lengths
 
 
-def plot_exp_distribution(avgs, bins):
-    plt.hist(avgs, bins, facecolor='blue', alpha=0.5)
-    plt.xlabel('Average Expression')
+def plot_exp_distribution(avgs, bins, type, mask=False):
+    if mask:
+        avgs_m = np.ma.masked_equal(avgs, 0)
+        plt.hist(avgs_m, bins, facecolor='blue', alpha=0.5)
+        plt.title('Expression Distribution Across Gene Families (M)')
+    else:
+        plt.hist(avgs, bins, facecolor='blue', alpha=0.5)
+        plt.title('Expression Distribution Across Gene Families')
+    plt.xlabel(str(type)+' Expression')
     plt.ylabel('Frequency Among Families')
-    plt.title('Expression Distribution Across Gene Families')
+
     plt.show()
     return None
 
@@ -54,11 +77,16 @@ def plot_size_distribution(sizes, bins):
     plt.show()
     return None
 
-def plot_relationship(sizes, avgs):
-    plt.scatter(sizes, avgs)
+def plot_relationship(sizes, avgs, type, mask=False):
+    if mask:
+        avgs_m = np.ma.masked_equal(avgs, 0)
+        plt.scatter(sizes, avgs_m)
+        plt.title('Relationship Between Family Size and Expression (M)')
+    else:
+        plt.scatter(sizes, avgs)
+        plt.title('Relationship Between Family Size and Expression')
     plt.xlabel('Size')
-    plt.ylabel('Average Expression within Family')
-    plt.title('Realtionship Between Family Size and Expression')
+    plt.ylabel(str(type)+' Expression within Family')
     plt.show()
     return None
 
@@ -109,12 +137,17 @@ def main():
 
     # analyze info about gene families to make a subset
     avgs = get_avg_expression(gene_families, protein_DF[selected_tissues].to_dict(), selected_tissues)
-
+    maxs = get_max_exp(gene_families, protein_DF[selected_tissues].to_dict(), selected_tissues)
     sizes = get_sizes(gene_families)
 
-    # plot_exp_distribution(avgs[0], 10)
-    # plot_size_distribution(sizes, 10)
+    # plot_exp_distribution(avgs[0], 100)
+    # plot_size_distribution(sizes, 100)
     # plot_relationship(sizes, avgs[0])
+    plot_exp_distribution(maxs[0], 100, 'Max', mask=True)
+    plot_exp_distribution(avgs[0], 100, 'Average', mask=True)
+    plot_relationship(sizes, avgs[0], 'Average', mask=True)
+    plot_relationship(sizes, maxs[0], 'Max')
+    plot_relationship(sizes, maxs[0], 'Max', mask=True)
 
     smaller_fams = pick_families(gene_families, avgs[0], sizes) # 358 families
 
