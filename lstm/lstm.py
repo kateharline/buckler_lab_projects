@@ -1,6 +1,6 @@
 import numpy as np
-import datain
 import os
+import pickle
 
 # prevent warnings about CPU extensions
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -59,18 +59,19 @@ def extract_x_y(data):
     :return: np arrays of x and y data
     '''
     # slice out just one hot vectors and protein levels
-    dict = data.loc[:, ['one_hots', 'p_levels']].to_dict('list')
+    dict = data.loc[:, ['one_hots', 'Protein_Leaf_Zone_3_Growth', 'Protein_Root_Meristem_Zone_5_Days']].to_dict('list')
     x = np.array(dict['one_hots'])
-    y = np.array(dict['p_levels'])
+    y = np.array(dict['Protein_Leaf_Zone_3_Growth', 'Protein_Root_Meristem_Zone_5_Days'])
 
     return x, y
 
 def main():
     # load protein table + embedding matrices
-    data = datain.main()
+    train = pickle.load(open('train_encoded.pkl', 'rb'))
+    test = pickle.load(open('test_encoded.pkl', 'rb'))
 
-    X_train, Y_train = extract_x_y(data[0])
-    X_test, Y_test = extract_x_y(data[0])
+    X_train, Y_train = extract_x_y(train)
+    X_test, Y_test = extract_x_y(test)
 
     # set the longest possible length to pad to (may want to automatically compute in future
     max_length = 400

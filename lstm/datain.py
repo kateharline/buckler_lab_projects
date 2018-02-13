@@ -146,7 +146,7 @@ def encode_o_h(data, encode_dict):
     :param encode_dict: dictionary that converts sequence bases/residues to one hot vectors
     :return: the dataframe with a new column of one hot encodings
     '''
-    data_one_hots = base_to_one_hot(data['seqs'].tolist(), encode_dict.to_dict('list'))
+    data_one_hots = base_to_one_hot(data['protein_sequence'].tolist(), encode_dict.to_dict('list'))
     one_hot_series = pd.Series(data_one_hots)
     data['one_hots'] = one_hot_series.values
 
@@ -163,14 +163,29 @@ def encode_hphob(data):
                     'S': -3.40, 'H': -4.66, 'Q': -5.54, 'K': -5.55, 'N': -6.64, 'E': -6.81,
                     'D': -8.72, 'R': -14.92, '*':0}
 
-    protein_seqs = data['seqs'].tolist()
+    protein_seqs = data['protein_sequence'].tolist()
     hphob_encoding = [[hphob_values[base] for base in seq ] for seq in protein_seqs]
     data['hphob_encode'] = pd.Series(hphob_encoding).values
 
     return data
 
+def get_set(x_data, y_data, set):
+    '''
+    return the train, test or val subset of the x or y data
+    :param x_data: dataframe of x data
+    :param y_data: dataframe of y data
+    :param set: string subset of data to extract
+    :return: new dataframe ready for encoding, ids, sequences, expression values
+    '''
+    x_select = x_data.loc[x_data['group'] == set]
+
+    new_df = pd.concat([x_select, y_data], axis=1, join='inner')
+
+    return new_df
+
+
 def main():
-    os.chdir('/Users/kateharline/Desktop/buckler-lab')
+    os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
     '''
     train/test synthetic data
     
@@ -192,7 +207,17 @@ def main():
     y_data = pickle.load(open('y.pkl', 'rb'))
     encode_dict = load_data('protein_onehot.csv')
 
-    
+    train = get_set(x_data, y_data, 'train')
+    test = get_set(x_data, y_data, 'test')
+
+    print(train.head(10))
+
+    train_encoded = encode_o_h(train, encode_dict)
+    test_encoded = encode_o_h(test, encode_dict)
+
+    pickle.dump(train_encoded, open('train_encoded.pkl', 'wb'))
+    pickle.dump(test_encoded, open('test_encoded.pkl', 'wb'))
+
 
 if __name__ == '__main__':
     main()
