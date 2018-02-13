@@ -1,6 +1,6 @@
 import numpy as np
 import os
-import pickle
+import pandas as pd
 
 # prevent warnings about CPU extensions
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -67,8 +67,8 @@ def extract_x_y(data):
 
 def main():
     # load protein table + embedding matrices
-    train = pickle.load(open('train_encoded.pkl', 'rb'))
-    test = pickle.load(open('test_encoded.pkl', 'rb'))
+    train = pd.read_csv('train_encoded.csv')
+    test = pd.read_csv('test_encoded.csv')
 
     X_train, Y_train = extract_x_y(train)
     X_test, Y_test = extract_x_y(test)

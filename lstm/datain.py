@@ -210,13 +210,11 @@ def main():
     train = get_set(x_data, y_data, 'train')
     test = get_set(x_data, y_data, 'test')
 
-    print(train.head(10))
-
     train_encoded = encode_o_h(train, encode_dict)
     test_encoded = encode_o_h(test, encode_dict)
 
-    pickle.dump(train_encoded, open('train_encoded.pkl', 'wb'))
-    pickle.dump(test_encoded, open('test_encoded.pkl', 'wb'))
+    train_encoded.to_csv('train_encoded.csv')
+    test_encoded.to_csv('test_encoded.csv')
 
 
 if __name__ == '__main__':
