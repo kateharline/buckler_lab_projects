@@ -142,7 +142,7 @@ def make_splits(gene_families):
 # Input
 #########################################################
 # Gene groups
-def format_final_df(genes, proteinLevel_DF, proteinSequence_DF, genes_val, genes_test):
+def format_final_df(genes, proteinLevel_DF, proteinSequence_DF, genes_val, genes_test, name=''):
     template = pd.DataFrame({'group': 'train'}, index=genes)
     template['group'][[gene in genes_val for gene in genes]] = 'val'
     template['group'][[gene in genes_test for gene in genes]] = 'test'
@@ -166,9 +166,9 @@ def format_final_df(genes, proteinLevel_DF, proteinSequence_DF, genes_val, genes
     y.index.name = 'gene_id'
 
     # Saving
-    X.to_csv('X.csv')
-    pickle.dump(X, open('X.pkl', 'wb'))
+    X.to_csv(str(name)+'X.csv')
+    pickle.dump(X, open(str(name)+'X.pkl', 'wb'))
 
-    y.to_csv('y.csv')
-    pickle.dump(y, open('y.pkl', 'wb'))
+    y.to_csv(str(name)+'Y.csv')
+    pickle.dump(y, open(str(name)+'Y.pkl', 'wb'))
 
