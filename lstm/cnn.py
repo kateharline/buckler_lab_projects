@@ -1,5 +1,5 @@
 import numpy as np
-import datain
+import pandas as pd
 import os
 
 # prevent warnings about CPU extensions
@@ -36,7 +36,7 @@ def make_model(X, max_length, seq_type):
     :return: keras model object
     '''
     # switch
-    oh_lengths = {'protein':21, 'na':4}
+    oh_lengths = {'protein':21, 'na':5}
     oh_length = oh_lengths[seq_type]
 
     print('length '+str(oh_length))
@@ -70,15 +70,16 @@ def fit_and_evaluate(model, X_train, Y_train, X_test, Y_test):
 
 
 def main():
-    # load protein table + embedding matrices
-    data = datain.main()
+    train = pd.read_csv('train_encoded.csv')
+    test = pd.read_csv('test_encoded.csv')
+    val = pd.read_csv('val_encoded.csv')
 
-    X_train, Y_train = extract_x_y(data[0])
-    X_test, Y_test = extract_x_y(data[0])
+    X_train, Y_train = extract_x_y(train)
+    X_val, Y_val = extract_x_y(val)
+    X_test, Y_test = extract_x_y(test)
 
-    # set the longest possible length to pad to (may want to automatically compute in future
-    max_length = 399
-    X_train = sequence.pad_sequences(X_train, maxlen=max_length)
+    max_length = len(X_train['one_hots'][0])
+
     model = make_model(X_train, max_length, 'protein')
 
     print('Model summary '+str(model.summary()))

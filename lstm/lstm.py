@@ -66,7 +66,7 @@ def extract_x_y(data):
     return x, y
 
 def main():
-    # load protein table + embedding matrices
+    # load protein table
     train = pd.read_csv('train_encoded.csv')
     test = pd.read_csv('test_encoded.csv')
 

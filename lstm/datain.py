@@ -198,8 +198,10 @@ def main():
 
     synth_encoded = encode_o_h(synth, encode_dict)
     a_encoded = encode_o_h(heavy_As, encode_dict)
+    
+    synth_encoded.to_csv('synth.csv')
+    a_encoded.to_csv('a_synth.csv')
 
-    return (synth_encoded, a_encoded)
     '''
 
     # load the data from file
@@ -208,13 +210,16 @@ def main():
     encode_dict = load_data('protein_onehot.csv')
 
     train = get_set(x_data, y_data, 'train')
+    val = get_set(x_data, y_data, 'val')
     test = get_set(x_data, y_data, 'test')
 
     train_encoded = encode_o_h(train, encode_dict)
+    val_encoded = encode_o_h(val, encode_dict)
     test_encoded = encode_o_h(test, encode_dict)
 
     train_encoded.to_csv('train_encoded.csv')
     test_encoded.to_csv('test_encoded.csv')
+    val_encoded.to_csv('val_encoded.csv')
 
 
 if __name__ == '__main__':
