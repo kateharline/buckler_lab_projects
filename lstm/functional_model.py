@@ -47,42 +47,6 @@ n_epochs = 100
 min_delta = 0 # Minimum difference for improvement on validation loss in early stopping
 patience = 5 # Patience in early stopping
 
-################################################################
-# Functions
-################################################################
-
-
-def prediction_accuracy(y_true, y_pred):
-    c12 = backend.sum((y_true - backend.mean(y_true)) * (y_pred - backend.mean(y_pred)))
-    c11 = backend.sum(backend.square(y_true - backend.mean(y_true)))
-    c22 = backend.sum(backend.square(y_pred - backend.mean(y_pred)))
-    return c12/backend.sqrt(c11*c22)
-
-# Protein sequence scan
-def protein_scan(input_sequence, cnn_layers=4, fcn_layers=1):
-    x = Conv1D(64, kernel_size=5, padding='valid')(input_sequence)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-    x = MaxPooling1D(padding='same')(x)
-    x = Dropout(0.25)(x)
-
-    for _ in range(1, cnn_layers):
-        x = Conv1D(64, kernel_size=5, padding='valid')(x)
-        x = BatchNormalization()(x)
-        x = Activation('relu')(x)
-        x = MaxPooling1D(padding='same')(x)
-        x = Dropout(0.25)(x)
-
-    x = Flatten()(x)
-
-    for _ in range(fcn_layers):
-        x = Dense(64)(x)
-        x = BatchNormalization()(x)
-        x = Activation('relu')(x)
-        x = Dropout(0.25)(x)
-
-    return x
-
 
 ################################################################
 # Model parameters
@@ -133,10 +97,6 @@ y = np.expand_dims(y, axis=2)
 ################################################################
 # Protein --> Protein level
 ################################################################
-model_name = 'P'
-
-#   Input
-protein_sequence = Input(shape=protein.shape[1:])
 
 #   Motif scans
 protein_motif = protein_scan(protein_sequence)

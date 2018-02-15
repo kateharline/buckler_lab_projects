@@ -153,7 +153,7 @@ def pick_rand(n, genes):
     :param genes: np array of str gene names
     :return: list of str gene names
     '''
-    subset = np.random.choice(genes, n)
+    subset = np.random.choice(genes, n, replace=False)
 
     return subset
 
