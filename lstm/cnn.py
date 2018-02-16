@@ -136,15 +136,12 @@ def make_model(protein, max_length, seq_type):
     return model
 
 
-def fit_and_evaluate(model, X_train, Y_train, X_test, Y_test):
-    '''
-    :param model: keras model
-    :param X_train: np array
-    :param Y_train: np array
-    :param X_test: np array
-    :param Y_test: np array
-    :return: score data from keras
-    '''
+def fit_and_evaluate(model, model_dir, model_name, y_train, y_val, y_test, protein_train, protein_test, protein_val,
+                     make_checkpoints=True):
+    min_delta = 0
+    patience = 5
+    batch_size = 256
+    n_epochs = 100
     # Training
     callbacks = [EarlyStopping(monitor='val_loss', min_delta=min_delta, patience=patience, verbose=0, mode='auto')]
 
@@ -170,7 +167,9 @@ def fit_and_evaluate(model, X_train, Y_train, X_test, Y_test):
     cor_val = cor(y_val, ypred_val)[0][0]
     cor_test = cor(y_test, ypred_test)[0][0]
 
-def plot_stats(fit, model_name, model_dir, y, y_pred, cor):
+    return [y_train, ypred_train, cor_train], [y_test, ypred_test, cor_test], [y_val, ypred_val, cor_val]
+
+def plot_stats(fit, model_name, model_dir, y_train, y_val, plt_metric_name, selected_tissue):
     # Plot training history
     accuracy_train = fit.history[list(fit.history)[-1]]
     accuracy_val = fit.history[list(fit.history)[1]]
@@ -188,15 +187,17 @@ def plot_stats(fit, model_name, model_dir, y, y_pred, cor):
     # Training and validation correlation
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.scatter(y_train, ypred_train, color='g',
-               label='Training: r=' + str(np.round(cor_train, 3)), alpha=0.15)
-    ax.scatter(y_val, ypred_val, color='b',
-               label='Validation: r=' + str(np.round(cor_val, 3)), alpha=0.15)
+    ax.scatter(y_train[0], y_train[1], color='g',
+               label='Training: r=' + str(np.round(y_train[2], 3)), alpha=0.15)
+    ax.scatter(y_val[0], y_val[1], color='b',
+               label='Validation: r=' + str(np.round(y_val[2], 3)), alpha=0.15)
     ax.set(title=model_name.replace('__', ', ').replace('_', ' '),
            xlabel='Observed',
            ylabel='Predicted')
     ax.legend(loc='best')
     fig.savefig(os.path.join(model_dir, model_name + '-predicting_validation_set--' + selected_tissue + '.png'))
+
+    return accuracy_train, accuracy_val
 
 
 def main():
