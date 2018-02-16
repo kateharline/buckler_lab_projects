@@ -191,7 +191,7 @@ def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
 
 
 def main():
-    tissue = 'Leaf_Zone_3_Growth'
+    tissue = 'Protein_Leaf_Zone_3_Growth'
     train = pd.read_csv('train_encoded.csv')
     test = pd.read_csv('test_encoded.csv')
     val = pd.read_csv('val_encoded.csv')
