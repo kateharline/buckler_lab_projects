@@ -1,26 +1,13 @@
-import platform
 import os
 import warnings
-import itertools
 import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr as cor
-import sklearn.metrics as metrics
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from keras.models import Sequential, Model
-from keras.layers import Input, Dense, Activation, Conv1D, Conv2D, MaxPooling1D, MaxPooling2D, Flatten, Dropout, BatchNormalization
-import keras.layers.advanced_activations as advanced_activations
+from keras.models import Model
+from keras.layers import Activation, MaxPooling1D, Flatten, BatchNormalization
 from keras.callbacks import ModelCheckpoint, EarlyStopping
-from keras.regularizers import l2
-from keras.initializers import he_normal
 import keras.optimizers as optimizers
 import keras.backend as backend
-import keras.layers
-import h5py
-import pickle
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # prevent warnings about CPU extensions
@@ -167,9 +154,12 @@ def fit_and_evaluate(model, model_dir, model_name, y_train, y_val, y_test, prote
     cor_val = cor(y_val, ypred_val)[0][0]
     cor_test = cor(y_test, ypred_test)[0][0]
 
-    return [y_train, ypred_train, cor_train], [y_test, ypred_test, cor_test], [y_val, ypred_val, cor_val]
+    return fit, [y_train, ypred_train, cor_train], [y_test, ypred_test, cor_test], [y_val, ypred_val, cor_val]
 
-def plot_stats(fit, model_name, model_dir, y_train, y_val, plt_metric_name, selected_tissue):
+def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
+    model_metric = prediction_accuracy
+    metric_name = model_metric.__name__
+    plt_metric_name = metric_name.replace('_', ' ').capitalize()
     # Plot training history
     accuracy_train = fit.history[list(fit.history)[-1]]
     accuracy_val = fit.history[list(fit.history)[1]]
@@ -205,6 +195,10 @@ def main():
     test = pd.read_csv('test_encoded.csv')
     val = pd.read_csv('val_encoded.csv')
 
+    model_dir = ''
+    model_name = ''
+
+
     X_train, Y_train = extract_x_y(train)
     X_val, Y_val = extract_x_y(val)
     X_test, Y_test = extract_x_y(test)
@@ -212,12 +206,14 @@ def main():
     max_length = len(X_train['one_hots'][0])
 
     model = make_model(X_train[['one_hots']], max_length, 'protein')
+    fit, y_train, y_test, y_val = fit_and_evaluate(model, model_dir, model_name, Y_train, Y_val, Y_test, X_train, X_test,
+                                              X_val)
+    accuracy_train, acc_test = plot_stats(fit, model_name, model_dir, y_train, y_test, y_val, selected_tissue='Leaf_Zone_3_Growth')
 
     print('Model summary '+str(model.summary()))
 
-    scores = fit_and_evaluate(model, X_train, Y_train, X_test, Y_test)
-    print('Accuracy: %.2f%% ' % (scores[1]*100))
-
+    print('Accuracy train: %.2f%% ' % (accuracy_train*100))
+    print('Accuracy test: %.2f%% ' % (acc_test * 100))
 
 
 if __name__ == '__main__':
