@@ -21,16 +21,16 @@ from keras.preprocessing import sequence
 # fix random seed for reproducibility
 np.random.seed(7)
 
-def extract_x_y(data):
+def extract_x_y(data, tissue):
     '''
     reformat dataframe values into usable np arrays
     :param data: dataframe of sequence data and expression values
     :return: np arrays of x and y data
     '''
     # slice out just one hot vectors and protein levels
-    dict = data.loc[:, ['one_hots', 'p_levels']].to_dict('list')
+    dict = data.loc[:, ['one_hots', tissue]].to_dict('list')
     x = np.array(dict['one_hots'])
-    y = np.array(dict['p_levels'])
+    y = np.array(dict[tissue])
 
     return x, y
 
@@ -191,24 +191,30 @@ def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
 
 
 def main():
+    tissue = 'Leaf_Zone_3_Growth'
     train = pd.read_csv('train_encoded.csv')
     test = pd.read_csv('test_encoded.csv')
     val = pd.read_csv('val_encoded.csv')
 
-    model_dir = ''
-    model_name = ''
+    output_folder = 'data/functional_model'
+    os.system('mkdir ' + output_folder)
+
+    model_dir = os.path.join(output_folder, 'tmp')
+    os.system('mkdir ' + model_dir)
+
+    model_name = 'p2p_CNN'
 
 
-    X_train, Y_train = extract_x_y(train)
-    X_val, Y_val = extract_x_y(val)
-    X_test, Y_test = extract_x_y(test)
+    X_train, Y_train = extract_x_y(train, tissue)
+    X_val, Y_val = extract_x_y(val, tissue)
+    X_test, Y_test = extract_x_y(test, tissue)
 
     max_length = len(X_train['one_hots'][0])
 
     model = make_model(X_train[['one_hots']], max_length, 'protein')
     fit, y_train, y_test, y_val = fit_and_evaluate(model, model_dir, model_name, Y_train, Y_val, Y_test, X_train, X_test,
                                               X_val)
-    accuracy_train, acc_test = plot_stats(fit, model_name, model_dir, y_train, y_test, y_val, selected_tissue='Leaf_Zone_3_Growth')
+    accuracy_train, acc_test = plot_stats(fit, model_name, model_dir, y_train, y_test, y_val, tissue)
 
     print('Model summary '+str(model.summary()))
 
