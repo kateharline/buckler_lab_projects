@@ -221,6 +221,8 @@ def main():
     test_encoded.to_csv('test_encoded.csv')
     val_encoded.to_csv('val_encoded.csv')
 
+    return train_encoded, test_encoded, val_encoded
+
 
 if __name__ == '__main__':
     main()

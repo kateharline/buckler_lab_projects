@@ -9,6 +9,7 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping
 import keras.optimizers as optimizers
 import keras.backend as backend
 import matplotlib.pyplot as plt
+import datain as d
 
 # prevent warnings about CPU extensions
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -191,12 +192,11 @@ def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
 
 
 def main():
+    os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
     tissue = 'Protein_Leaf_Zone_3_Growth'
-    train = pd.read_csv('train_encoded.csv')
-    test = pd.read_csv('test_encoded.csv')
-    val = pd.read_csv('val_encoded.csv')
+    train, test, val = d.main()
 
-    output_folder = 'data/functional_model'
+    output_folder = 'box-data'
     os.system('mkdir ' + output_folder)
 
     model_dir = os.path.join(output_folder, 'tmp')
@@ -209,9 +209,10 @@ def main():
     X_val, Y_val = extract_x_y(val, tissue)
     X_test, Y_test = extract_x_y(test, tissue)
 
-    max_length = len(X_train['one_hots'][0])
+    print(X_train[0])
+    max_length = len(X_train[0])
 
-    model = make_model(X_train[['one_hots']], max_length, 'protein')
+    model = make_model(X_train, max_length, 'protein')
     fit, y_train, y_test, y_val = fit_and_evaluate(model, model_dir, model_name, Y_train, Y_val, Y_test, X_train, X_test,
                                               X_val)
     accuracy_train, acc_test = plot_stats(fit, model_name, model_dir, y_train, y_test, y_val, tissue)
