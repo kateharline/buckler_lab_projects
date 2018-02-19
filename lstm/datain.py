@@ -115,42 +115,31 @@ def my_max(seqs):
     return max_len
 
 
-def base_to_one_hot(seqs, encode_dict):
+def base_to_one_hot(data, encode_dict):
     '''
     one hot helper function
-    :param seqs: list of the sequences
-    :param encode_dict: dictionary that converts sequence bases/residues to one hot vectors
+    :param data: datafrmae containing protein sequences as strings
+    :param encode_dict: dataframe that can be used to convert sequence bases/residues to one hot vectors
     :return: list of one hot encodings
     '''
+    seqs = data['protein_sequence'].tolist()
+    d = encode_dict.to_dict('list')
 
     # max length of sequence
     my_max_1 = my_max(seqs)
 
-    newcol = []
+    newcol = np.array((len(seqs), my_max_1, 21))
 
-    for seq in seqs:
-        seq_as_o_h = np.zeros((my_max_1, 21))
+    for k, seq in enumerate(seqs):
         # padding check
         for i in range(len(seq)):
-            one_hot = encode_dict[seq[i]]
+            one_hot = d[seq[i]]
             for j in range(0,21):
-                seq_as_o_h[i][j] = one_hot[j]
-        newcol.append(seq_as_o_h)
+                newcol[k][i][j] = one_hot[j]
+
 
     return newcol
 
-def encode_o_h(data, encode_dict):
-    '''
-    make one hot encodings
-    :param data: dataframe contaning sequences and expression values
-    :param encode_dict: dictionary that converts sequence bases/residues to one hot vectors
-    :return: the dataframe with a new column of one hot encodings
-    '''
-    data_one_hots = base_to_one_hot(data['protein_sequence'].tolist(), encode_dict.to_dict('list'))
-    one_hot_series = pd.Series(data_one_hots)
-    data['one_hots'] = one_hot_series.values
-
-    return data
 
 def encode_hphob(data):
     '''
@@ -183,6 +172,18 @@ def get_set(x_data, y_data, set):
 
     return new_df
 
+def extract_y(data, tissue):
+    '''
+    reformat dataframe values into usable np arrays
+    :param data: dataframe of sequence data and expression values
+    :return: np arrays of y data
+    '''
+    # slice out just one hot vectors and protein levels
+    slice = data.loc[:, [tissue]]
+    y = np.array(slice[tissue].values)
+
+    return y
+
 
 def main():
     os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
@@ -203,6 +204,7 @@ def main():
     a_encoded.to_csv('a_synth.csv')
 
     '''
+    tissue = 'Protein_Leaf_Zone_3_Growth'
 
     # load the data from file
     x_data = pickle.load(open('X.pkl', 'rb'))
@@ -213,15 +215,15 @@ def main():
     val = get_set(x_data, y_data, 'val')
     test = get_set(x_data, y_data, 'test')
 
-    train_encoded = encode_o_h(train, encode_dict)
-    val_encoded = encode_o_h(val, encode_dict)
-    test_encoded = encode_o_h(test, encode_dict)
+    train_encoded = base_to_one_hot(train, encode_dict)
+    val_encoded = base_to_one_hot(val, encode_dict)
+    test_encoded = base_to_one_hot(test, encode_dict)
 
-    train_encoded.to_csv('train_encoded.csv')
-    test_encoded.to_csv('test_encoded.csv')
-    val_encoded.to_csv('val_encoded.csv')
+    train = extract_y(train, tissue)
+    test = extract_y(test, tissue)
+    val = extract_y(val, tissue)
 
-    return train_encoded, test_encoded, val_encoded
+    return train, train_encoded, test, test_encoded, val, val_encoded
 
 
 if __name__ == '__main__':

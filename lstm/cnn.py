@@ -22,18 +22,6 @@ from keras.preprocessing import sequence
 # fix random seed for reproducibility
 np.random.seed(7)
 
-def extract_x_y(data, tissue):
-    '''
-    reformat dataframe values into usable np arrays
-    :param data: dataframe of sequence data and expression values
-    :return: np arrays of x and y data
-    '''
-    # slice out just one hot vectors and protein levels
-    dict = data.loc[:, ['one_hots', tissue]].to_dict('list')
-    x = np.array(dict['one_hots'])
-    y = np.array(dict[tissue])
-
-    return x, y
 
 def prediction_accuracy(y_true, y_pred):
     '''calculate the prediction accuracy of the model
@@ -100,9 +88,7 @@ def make_model(protein, max_length, seq_type):
     # switch
     oh_lengths = {'protein':21, 'na':5}
     oh_length = oh_lengths[seq_type]
-    metrics = prediction_accuracy()
-
-    print('length '+str(oh_length))
+    metrics = prediction_accuracy
 
     # instantiate the model
     conv_protein = protein_scan(protein)
@@ -194,7 +180,7 @@ def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
 def main():
     os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
     tissue = 'Protein_Leaf_Zone_3_Growth'
-    train, test, val = d.main()
+    X_train, Y_train, X_test, Y_test, X_val, Y_val = d.main()
 
     output_folder = 'box-data'
     os.system('mkdir ' + output_folder)
@@ -204,12 +190,6 @@ def main():
 
     model_name = 'p2p_CNN'
 
-
-    X_train, Y_train = extract_x_y(train, tissue)
-    X_val, Y_val = extract_x_y(val, tissue)
-    X_test, Y_test = extract_x_y(test, tissue)
-
-    print(X_train[0])
     max_length = len(X_train[0])
 
     model = make_model(X_train, max_length, 'protein')
