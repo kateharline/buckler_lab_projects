@@ -128,7 +128,7 @@ def base_to_one_hot(data, encode_dict):
     # max length of sequence
     my_max_1 = my_max(seqs)
 
-    newcol = np.array((len(seqs), my_max_1, 21))
+    newcol = np.zeros((len(seqs), my_max_1, 21))
 
     for k, seq in enumerate(seqs):
         # padding check
@@ -223,7 +223,7 @@ def main():
     test = extract_y(test, tissue)
     val = extract_y(val, tissue)
 
-    return train, train_encoded, test, test_encoded, val, val_encoded
+    return train_encoded, train, test_encoded, test, val_encoded, val
 
 
 if __name__ == '__main__':

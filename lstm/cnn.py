@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr as cor
 from keras.models import Model
-from keras.layers import Activation, MaxPooling1D, Flatten, BatchNormalization
+from keras.layers import Activation, MaxPooling1D, Flatten, BatchNormalization, Input
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 import keras.optimizers as optimizers
 import keras.backend as backend
@@ -44,6 +44,7 @@ def protein_scan(input_sequence, cnn_layers=4, fcn_layers=1):
     :param fcn_layers: int number of fully connected layers
     :return: model with layers applied
     '''
+
     x = Conv1D(64, kernel_size=5, padding='valid')(input_sequence)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
@@ -77,7 +78,7 @@ def fc_apply(motifs):
     return expression
 
 
-def make_model(protein, max_length, seq_type):
+def make_model(protein_i, max_length, seq_type):
     '''
     instantiate keras model
     :param X: np array of x values
@@ -89,7 +90,7 @@ def make_model(protein, max_length, seq_type):
     oh_lengths = {'protein':21, 'na':5}
     oh_length = oh_lengths[seq_type]
     metrics = prediction_accuracy
-
+    protein = Input(shape=protein_i.shape[1:])
     # instantiate the model
     conv_protein = protein_scan(protein)
     fcs = fc_apply(conv_protein)
@@ -189,6 +190,8 @@ def main():
     os.system('mkdir ' + model_dir)
 
     model_name = 'p2p_CNN'
+
+    print('x train '+str(X_train.shape))
 
     max_length = len(X_train[0])
 
