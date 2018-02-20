@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 import pickle
+import walley as w
 
 # import control datasets for testing
 import control as c
@@ -115,7 +116,7 @@ def my_max(seqs):
     return max_len
 
 
-def base_to_one_hot(data, encode_dict):
+def base_to_one_hot(data, max, encode_dict):
     '''
     one hot helper function
     :param data: datafrmae containing protein sequences as strings
@@ -125,10 +126,7 @@ def base_to_one_hot(data, encode_dict):
     seqs = data['protein_sequence'].tolist()
     d = encode_dict.to_dict('list')
 
-    # max length of sequence
-    my_max_1 = my_max(seqs)
-
-    newcol = np.zeros((len(seqs), my_max_1, 21))
+    newcol = np.zeros((len(seqs), max, 21))
 
     for k, seq in enumerate(seqs):
         # padding check
@@ -215,9 +213,11 @@ def main():
     val = get_set(x_data, y_data, 'val')
     test = get_set(x_data, y_data, 'test')
 
-    train_encoded = base_to_one_hot(train, encode_dict)
-    val_encoded = base_to_one_hot(val, encode_dict)
-    test_encoded = base_to_one_hot(test, encode_dict)
+    max = my_max(x_data['protein_sequence'].tolist())
+
+    train_encoded = base_to_one_hot(train, max, encode_dict)
+    val_encoded = base_to_one_hot(val, max, encode_dict)
+    test_encoded = base_to_one_hot(test, max, encode_dict)
 
     train = extract_y(train, tissue)
     test = extract_y(test, tissue)

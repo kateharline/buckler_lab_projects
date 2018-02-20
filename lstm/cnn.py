@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr as cor
 from keras.models import Model
-from keras.layers import Activation, MaxPooling1D, Flatten, BatchNormalization, Input
+from keras.layers import Activation, MaxPooling1D, Flatten, BatchNormalization, Input, LSTM
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 import keras.optimizers as optimizers
 import keras.backend as backend
@@ -53,6 +53,38 @@ def protein_scan(input_sequence, cnn_layers=4, fcn_layers=1):
 
     for _ in range(1, cnn_layers):
         x = Conv1D(64, kernel_size=5, padding='valid')(x)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+        x = MaxPooling1D(padding='same')(x)
+        x = Dropout(0.25)(x)
+
+    x = Flatten()(x)
+
+    for _ in range(fcn_layers):
+        x = Dense(64)(x)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+        x = Dropout(0.25)(x)
+
+    return x
+
+def lstm_scan(input_sequence, lstm_layers=4, units, fcn_layers=1):
+    '''
+    use the functional API to instantiate layers in LSTM
+    :param input_sequence: ???
+    :param cnn_layers: int number of convolutional layers
+    :param fcn_layers: int number of fully connected layers
+    :return: model with layers applied
+    '''
+
+    x = LSTM(units)(input_sequence)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = MaxPooling1D(padding='same')(x)
+    x = Dropout(0.25)(x)
+
+    for _ in range(1, lstm_layers):
+        x = LSTM(units)(x)
         x = BatchNormalization()(x)
         x = Activation('relu')(x)
         x = MaxPooling1D(padding='same')(x)
@@ -121,7 +153,7 @@ def fit_and_evaluate(model, model_dir, model_name, y_train, y_val, y_test, prote
     callbacks = [EarlyStopping(monitor='val_loss', min_delta=min_delta, patience=patience, verbose=0, mode='auto')]
 
     if make_checkpoints:
-        callbacks += ModelCheckpoint(filepath=os.path.join(model_dir, model_name + '__epoch={epoch:02d}.h5'), period=10)
+        callbacks.append(ModelCheckpoint(filepath=os.path.join(model_dir, model_name + '__epoch={epoch:02d}.h5'), period=10))
 
     fit = model.fit([protein_train], [y_train],
                     validation_data=([protein_val], [y_val]),
@@ -190,8 +222,6 @@ def main():
     os.system('mkdir ' + model_dir)
 
     model_name = 'p2p_CNN'
-
-    print('x train '+str(X_train.shape))
 
     max_length = len(X_train[0])
 
