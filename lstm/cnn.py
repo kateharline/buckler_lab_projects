@@ -178,6 +178,9 @@ def fit_and_evaluate(model, model_dir, model_name, y_train, y_val, y_test, prote
     ypred_val = model.predict([protein_val])
     ypred_test = model.predict([protein_test])
 
+    print('################')
+    print(cor(y_train, ypred_train))
+
     cor_train = cor(y_train, ypred_train)[0][0]
     cor_val = cor(y_val, ypred_val)[0][0]
     cor_test = cor(y_test, ypred_test)[0][0]
