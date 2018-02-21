@@ -166,9 +166,9 @@ def get_set(x_data, y_data, set):
     :return: new dataframe ready for encoding, ids, sequences, expression values
     '''
     x_select = x_data.loc[x_data['group'] == set]
+    y_select = y_data.loc[y_data['group'] == set]
 
-    new_df = pd.concat([x_select, y_data], axis=1, join='inner')
-
+    new_df = pd.concat([x_select, y_select], axis=1, join='inner')
     return new_df
 
 def extract_y(data, tissue):
@@ -207,6 +207,7 @@ def main():
 
     # load the data from file
     x_data, y_data = pf.main()
+
     encode_dict = load_data('protein_onehot.csv')
 
     train = get_set(x_data, y_data, 'train')

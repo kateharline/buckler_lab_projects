@@ -195,6 +195,7 @@ def main():
     # convert subset to usable dataframe for making models
     genes_test, genes_train, genes_val = w.make_splits(smaller_fams)
     x, y = w.format_final_df(protein_DF, proteinSequence_DF, genes_train, genes_val, genes_test)
+
     return x, y
 
 

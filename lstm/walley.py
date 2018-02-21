@@ -174,4 +174,4 @@ def format_final_df(proteinLevel_DF, proteinSequence_DF, genes_train, genes_val,
     y.to_csv(str(name)+'Y.csv')
     pickle.dump(y, open(str(name)+'Y.pkl', 'wb'))
 
-    return x, y
+    return X, y

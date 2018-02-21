@@ -40,7 +40,7 @@ def prediction_accuracy(y_true, y_pred):
 def protein_scan(input_sequence, cnn_layers=4, fcn_layers=1):
     '''
     use the functional API to instantiate layers in CNN
-    :param input_sequence: ???
+    :param input_sequence: np multi-dim array of encoded protein sequences
     :param cnn_layers: int number of convolutional layers
     :param fcn_layers: int number of fully connected layers
     :return: model with layers applied
@@ -72,25 +72,33 @@ def protein_scan(input_sequence, cnn_layers=4, fcn_layers=1):
 def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
     '''
     use the functional API to instantiate layers in LSTM
-    :param input_sequence: ???
-    :param cnn_layers: int number of convolutional layers
+    :param input_sequence: np multi-dim array of encoded protein sequences
+    :param lstm_layers: int number of lstm layers
     :param fcn_layers: int number of fully connected layers
     :return: model with layers applied
     '''
     seq_return = False
 
     if lstm_layers > 1:
+        seq_return = True
 
-        x = LSTM(units, return_sequences=True)(input_sequence)
+    x = LSTM(units, return_sequences=seq_return)(input_sequence)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = MaxPooling1D(padding='same')(x)
+    x = Dropout(0.25)(x)
 
-        for _ in range(1, lstm_layers-1):
-            x = LSTM(units, return_sequences=True)(input_sequence)
-            x = BatchNormalization()(x)
-            x = Activation('relu')(x)
-            x = MaxPooling1D(padding='same')(x)
-            x = Dropout(0.25)(x)
+    for i in range(1, lstm_layers):
+        if i < lstm_layers -1:
+            seq_return = True
+        else:
+            seq_return = False
 
-    x = Flatten()(x)
+        x = LSTM(units, return_sequences=seq_return)(input_sequence)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+        x = MaxPooling1D(padding='same')(x)
+        x = Dropout(0.25)(x)
 
     for _ in range(fcn_layers):
         x = Dense(64)(x)
@@ -221,6 +229,8 @@ def main():
     model_dir = os.path.join(output_folder, 'tmp')
     os.system('mkdir ' + model_dir)
 
+    # CNN
+
     model_name = 'p2p_CNN'
 
     max_length = len(X_train[0])
@@ -234,6 +244,8 @@ def main():
 
     print('Accuracy train: %.2f%% ' % (accuracy_train*100))
     print('Accuracy test: %.2f%% ' % (acc_test * 100))
+
+    # LSTM
 
 
 if __name__ == '__main__':
