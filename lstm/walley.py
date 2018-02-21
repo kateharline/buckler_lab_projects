@@ -128,8 +128,7 @@ def define_families(index_family_file, node_file, genes, v3_to_v4):
 # Splits
 def make_splits(gene_families):
 
-    families_cal, families_test = train_test_split(gene_families, test_size=0.15, random_state=0) # ----change this line to choose
-        # most different families
+    families_cal, families_test = train_test_split(gene_families, test_size=0.15, random_state=0)
     families_train, families_val = train_test_split(families_cal, test_size=0.20, random_state=1)
 
     genes_train = unlist(families_train)
@@ -142,7 +141,10 @@ def make_splits(gene_families):
 # Input
 #########################################################
 # Gene groups
-def format_final_df(genes, proteinLevel_DF, proteinSequence_DF, genes_val, genes_test, name=''):
+def format_final_df(proteinLevel_DF, proteinSequence_DF, genes_train, genes_val, genes_test, name=''):
+    # select smaller subset
+    genes = genes_train + genes_val + genes_test
+
     template = pd.DataFrame({'group': 'train'}, index=genes)
     template['group'][[gene in genes_val for gene in genes]] = 'val'
     template['group'][[gene in genes_test for gene in genes]] = 'test'

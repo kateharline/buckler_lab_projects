@@ -10,6 +10,7 @@ import keras.optimizers as optimizers
 import keras.backend as backend
 import matplotlib.pyplot as plt
 import datain as d
+import h5py
 
 # prevent warnings about CPU extensions
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -68,7 +69,7 @@ def protein_scan(input_sequence, cnn_layers=4, fcn_layers=1):
 
     return x
 
-def lstm_scan(input_sequence, lstm_layers=4, units, fcn_layers=1):
+def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
     '''
     use the functional API to instantiate layers in LSTM
     :param input_sequence: ???
@@ -121,7 +122,7 @@ def make_model(protein_i, max_length, seq_type):
     # switch
     oh_lengths = {'protein':21, 'na':5}
     oh_length = oh_lengths[seq_type]
-    metrics = prediction_accuracy
+    metrics = prediction_accuracy # 'accuracy'
     protein = Input(shape=protein_i.shape[1:])
     # instantiate the model
     conv_protein = protein_scan(protein)

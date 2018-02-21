@@ -172,7 +172,6 @@ def main():
     # load actual data to model
     protein_DF, proteinSequence_DF, genes = w.load_protein_data(genes, 'Zea_mays.AGPv4.pep.longest.pkl', 'v4_Protein_meanLogExpression.csv')
     gene_families = w.define_families('gene_families.npy', 'nodes.npy', genes, v3_to_v4)
-
     # analyze info about gene families to make a subset
     avgs = get_avg_expression(gene_families, protein_DF[selected_tissues].to_dict(), selected_tissues)
     maxs, max_genes = get_max_exp(gene_families, protein_DF[selected_tissues].to_dict(), selected_tissues)
@@ -190,12 +189,12 @@ def main():
     # make splits for different analyses
 
     smaller_fams = pick_families(gene_families, avgs[0], sizes) # 358 families, simple model
-    balanced_fams = pick_bal(200, 0.5, max_genes, maxs) # set to split for bal v unbal question
-    unbalanced_fams = pick_rand(200, max_genes)
+    # balanced_fams = pick_bal(200, 0.5, max_genes, maxs) # set to split for bal v unbal question
+    # unbalanced_fams = pick_rand(200, max_genes)
 
     # convert subset to usable dataframe for making models
     genes_test, genes_train, genes_val = w.make_splits(smaller_fams)
-    w.format_final_df(genes, protein_DF, proteinSequence_DF, genes_val, genes_test)
+    w.format_final_df(protein_DF, proteinSequence_DF, genes_train, genes_val, genes_test)
 
 
 if __name__ == '__main__':
