@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 import pickle
-import walley as w
+import pickfamily as pf
 
 
 # import control datasets for testing
@@ -206,8 +206,7 @@ def main():
     tissue = 'Protein_Leaf_Zone_3_Growth'
 
     # load the data from file
-    x_data = pickle.load(open('X.pkl', 'rb'))
-    y_data = pickle.load(open('y.pkl', 'rb'))
+    x_data, y_data = pf.main()
     encode_dict = load_data('protein_onehot.csv')
 
     train = get_set(x_data, y_data, 'train')

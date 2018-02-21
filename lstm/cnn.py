@@ -77,19 +77,18 @@ def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
     :param fcn_layers: int number of fully connected layers
     :return: model with layers applied
     '''
+    seq_return = False
 
-    x = LSTM(units)(input_sequence)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-    x = MaxPooling1D(padding='same')(x)
-    x = Dropout(0.25)(x)
+    if lstm_layers > 1:
 
-    for _ in range(1, lstm_layers):
-        x = LSTM(units)(x)
-        x = BatchNormalization()(x)
-        x = Activation('relu')(x)
-        x = MaxPooling1D(padding='same')(x)
-        x = Dropout(0.25)(x)
+        x = LSTM(units, return_sequences=True)(input_sequence)
+
+        for _ in range(1, lstm_layers-1):
+            x = LSTM(units, return_sequences=True)(input_sequence)
+            x = BatchNormalization()(x)
+            x = Activation('relu')(x)
+            x = MaxPooling1D(padding='same')(x)
+            x = Dropout(0.25)(x)
 
     x = Flatten()(x)
 
