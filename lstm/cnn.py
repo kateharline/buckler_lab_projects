@@ -11,6 +11,7 @@ import keras.backend as backend
 import matplotlib.pyplot as plt
 import datain as d
 import h5py
+import walley as w
 
 # prevent warnings about CPU extensions
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -178,16 +179,17 @@ def fit_and_evaluate(model, model_dir, model_name, y_train, y_val, y_test, prote
     ypred_val = model.predict([protein_val])
     ypred_test = model.predict([protein_test])
 
-    print('################')
-    print(cor(y_train, ypred_train))
+    y_train_flat = ypred_train.flatten()
+    y_val_flat = ypred_val.flatten()
+    y_test_flat = ypred_test.flatten()
 
-    cor_train = cor(y_train, ypred_train)[0][0]
-    cor_val = cor(y_val, ypred_val)[0][0]
-    cor_test = cor(y_test, ypred_test)[0][0]
+    cor_train = cor(y_train, y_train_flat)
+    cor_val = cor(y_val, y_val_flat)
+    cor_test = cor(y_test, y_test_flat)
 
     return fit, [y_train, ypred_train, cor_train], [y_test, ypred_test, cor_test], [y_val, ypred_val, cor_val]
 
-def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
+def plot_stats(fit, model_name, model_dir, y_train, y_test, y_val, selected_tissue):
     model_metric = prediction_accuracy
     metric_name = model_metric.__name__
     plt_metric_name = metric_name.replace('_', ' ').capitalize()
@@ -244,11 +246,6 @@ def main():
     accuracy_train, acc_test = plot_stats(fit, model_name, model_dir, y_train, y_test, y_val, tissue)
 
     print('Model summary '+str(model.summary()))
-
-    print('Accuracy train: %.2f%% ' % (accuracy_train*100))
-    print('Accuracy test: %.2f%% ' % (acc_test * 100))
-
-    # LSTM
 
 
 if __name__ == '__main__':
