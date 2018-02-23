@@ -5,6 +5,7 @@ import pandas as pd
 from scipy.stats import pearsonr as cor
 from keras.models import Model
 from keras.layers import Activation, MaxPooling1D, Flatten, BatchNormalization, Input, LSTM
+from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 import keras.optimizers as optimizers
 import keras.backend as backend
@@ -67,31 +68,31 @@ def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
 
         x = LSTM(units, return_sequences=seq_return)(x)
         x = BatchNormalization()(x)
-        x = Activation('relu')(x)
+        x = Activation(LeakyReLU(alpha=0.3))(x)
         x = Dropout(0.25)(x)
 
     for _ in range(fcn_layers):
         x = Dense(64)(x)
         x = BatchNormalization()(x)
-        x = Activation('relu')(x)
+        x = Activation(LeakyReLU(alpha=0.3))(x)
         x = Dropout(0.25)(x)
 
     return x
 
 def lstm_simple(input_sequence):
-    x = LSTM(256)(input_sequence)
+    x = LSTM(32)(input_sequence)
     x = Dropout(0.25)(x)
-    x = Dense(1, activation='relu')(x)
+    x = Dense(1, activation=LeakyReLU(alpha=0.3))(x)
 
     return x
 
 def fc_apply(motifs):
     #   FC layers on concatenated representations
-    expression = Dense(64, activation='relu')(motifs)
-    expression = Dense(64, activation='relu')(expression)
+    expression = Dense(64, activation=LeakyReLU(alpha=0.3))(motifs)
+    expression = Dense(64, activation=LeakyReLU(alpha=0.3))(expression)
 
     #   Output
-    expression = Dense(1, activation='relu')(expression)
+    expression = Dense(1, activation=LeakyReLU(alpha=0.3))(expression)
     return expression
 
 
