@@ -35,6 +35,10 @@ def prediction_accuracy(y_true, y_pred):
     c22 = backend.sum(backend.square(y_pred - backend.mean(y_pred)))
     return c12 / backend.sqrt(c11 * c22)
 
+def debug_accuracy(y_true, y_pred):
+
+    return backend.mean(y_pred)
+
 
 def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
     '''
@@ -50,10 +54,10 @@ def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
         seq_return = True
 
     x = LSTM(units, return_sequences=seq_return)(input_sequence)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-    x = MaxPooling1D(padding='same')(x)
-    x = Dropout(0.25)(x)
+    # x = BatchNormalization()(x)
+    # x = Activation('relu')(x)
+    # x = MaxPooling1D(padding='same')(x)
+    # x = Dropout(0.25)(x)
 
     for i in range(1, lstm_layers):
         if i < lstm_layers - 1:
@@ -74,6 +78,12 @@ def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
 
     return x
 
+def lstm_simple(input_sequence):
+    x = LSTM(256)(input_sequence)
+    x = Dropout(0.25)(x)
+    x = Dense(1, activation='relu')(x)
+
+    return x
 
 def fc_apply(motifs):
     #   FC layers on concatenated representations
@@ -96,14 +106,14 @@ def make_model(protein_i, max_length, seq_type):
     # switch
     oh_lengths = {'protein': 21, 'na': 5}
     oh_length = oh_lengths[seq_type]
-    metrics = prediction_accuracy  # 'accuracy'
+    metrics = debug_accuracy  # 'accuracy'
     protein = Input(shape=protein_i.shape[1:])
     # instantiate the model
-    conv_protein = lstm_scan(protein)
-    fcs = fc_apply(conv_protein)
+    fc = lstm_simple(protein)
+    #fc = fc_apply(conv_protein)
 
     model = Model(inputs=[protein],
-                  outputs=[fcs],
+                  outputs=[fc],
                   name='protein_level')
 
     # Inspection
@@ -158,7 +168,7 @@ def fit_and_evaluate(model, model_dir, model_name, y_train, y_val, y_test, prote
 
 
 def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
-    model_metric = prediction_accuracy
+    model_metric = debug_accuracy
     metric_name = model_metric.__name__
     plt_metric_name = metric_name.replace('_', ' ').capitalize()
     # Plot training history
