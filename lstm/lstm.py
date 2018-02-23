@@ -61,10 +61,9 @@ def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
         else:
             seq_return = False
 
-        x = LSTM(units, return_sequences=seq_return)(input_sequence)
+        x = LSTM(units, return_sequences=seq_return)(x)
         x = BatchNormalization()(x)
         x = Activation('relu')(x)
-        x = MaxPooling1D(padding='same')(x)
         x = Dropout(0.25)(x)
 
     for _ in range(fcn_layers):

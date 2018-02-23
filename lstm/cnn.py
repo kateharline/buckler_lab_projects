@@ -70,44 +70,6 @@ def protein_scan(input_sequence, cnn_layers=4, fcn_layers=1):
 
     return x
 
-def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
-    '''
-    use the functional API to instantiate layers in LSTM
-    :param input_sequence: np multi-dim array of encoded protein sequences
-    :param lstm_layers: int number of lstm layers
-    :param fcn_layers: int number of fully connected layers
-    :return: model with layers applied
-    '''
-    seq_return = False
-
-    if lstm_layers > 1:
-        seq_return = True
-
-    x = LSTM(units, return_sequences=seq_return)(input_sequence)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
-    x = MaxPooling1D(padding='same')(x)
-    x = Dropout(0.25)(x)
-
-    for i in range(1, lstm_layers):
-        if i < lstm_layers -1:
-            seq_return = True
-        else:
-            seq_return = False
-
-        x = LSTM(units, return_sequences=seq_return)(input_sequence)
-        x = BatchNormalization()(x)
-        x = Activation('relu')(x)
-        x = MaxPooling1D(padding='same')(x)
-        x = Dropout(0.25)(x)
-
-    for _ in range(fcn_layers):
-        x = Dense(64)(x)
-        x = BatchNormalization()(x)
-        x = Activation('relu')(x)
-        x = Dropout(0.25)(x)
-
-    return x
 
 def fc_apply(motifs):
     #   FC layers on concatenated representations
