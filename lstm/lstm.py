@@ -37,7 +37,6 @@ def prediction_accuracy(y_true, y_pred):
     return c12 / backend.sqrt(c11 * c22)
 
 def debug_accuracy(y_true, y_pred):
-
     return backend.mean(y_pred)
 
 
@@ -80,8 +79,8 @@ def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
     return x
 
 def lstm_simple(input_sequence):
-    x = LSTM(32)(input_sequence)
-    x = Dropout(0.25)(x)
+    x = LSTM(128)(input_sequence)
+    x = Dropout(0.5)(x)
     x = Dense(1, activation=LeakyReLU(alpha=0.3))(x)
 
     return x
@@ -107,7 +106,7 @@ def make_model(protein_i, max_length, seq_type):
     # switch
     oh_lengths = {'protein': 21, 'na': 5}
     oh_length = oh_lengths[seq_type]
-    metrics = debug_accuracy  # 'accuracy'
+    metrics = [debug_accuracy, prediction_accuracy]  # 'accuracy'
     protein = Input(shape=protein_i.shape[1:])
     # instantiate the model
     fc = lstm_simple(protein)
@@ -124,7 +123,7 @@ def make_model(protein_i, max_length, seq_type):
     # Compilation
     model.compile(optimizer=optimizers.Adam(),
                   loss='mse',
-                  metrics=[metrics])
+                  metrics=metrics)
 
     return model
 
@@ -169,7 +168,7 @@ def fit_and_evaluate(model, model_dir, model_name, y_train, y_val, y_test, prote
 
 
 def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
-    model_metric = debug_accuracy
+    model_metric = prediction_accuracy
     metric_name = model_metric.__name__
     plt_metric_name = metric_name.replace('_', ' ').capitalize()
     # Plot training history
