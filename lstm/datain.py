@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import pickle
 import pickfamily as pf
+import platform
 
 
 # import control datasets for testing
@@ -16,7 +17,10 @@ def txt_to_csv():
     :return: NA, outputs file as csv
     '''
 
-    os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
+    if 'Ubuntu' in platform.platform():
+        os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
+    else:
+        os.chdir('/home/kateharline/Desktop/buckler-lab/box-data')
 
 
     with open('BLOSUM62.txt') as f:
@@ -50,7 +54,7 @@ def make_hphob_matrix():
         :param values: float values to find differences between
         :return: matrix of differences (2D array)
         '''
-        os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
+        os.chdir('~/Desktop/buckler-lab/box-data')
         vals = list(values.values())
 
         matrix = np.zeros((20, 20))
@@ -185,7 +189,10 @@ def extract_y(data, tissue):
 
 
 def main():
-    os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
+    if 'Ubuntu' in platform.platform():
+        os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
+    else:
+        os.chdir('/home/kateharline/Desktop/buckler-lab/box-data')
     '''
     train/test synthetic data
     

@@ -1,2 +1,5 @@
 keras
 matplotlib
+pandas
+sklearn
+plotly

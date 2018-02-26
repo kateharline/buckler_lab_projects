@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import datain as d
 import h5py
 import walley as w
+import platform
 
 # prevent warnings about CPU extensions
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -186,7 +187,11 @@ def plot_stats(fit, model_name, model_dir, y_train, y_test, y_val, selected_tiss
 
 
 def main():
-    os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
+    if 'Ubuntu' in platform.platform():
+        os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
+    else:
+        os.chdir('/home/kateharline/Desktop/buckler-lab/box-data')
+
     tissue = 'Protein_Leaf_Zone_3_Growth'
     X_train, Y_train, X_test, Y_test, X_val, Y_val = d.main()
 
