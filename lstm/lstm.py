@@ -41,7 +41,7 @@ def y_pred_mean(y_true, y_pred):
     return backend.mean(y_pred)
 
 
-def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
+def lstm_scan(input_sequence, lstm_layers=4, units=32, fcn_layers=1):
     '''
     use the functional API to instantiate layers in LSTM
     :param input_sequence: np multi-dim array of encoded protein sequences
@@ -55,10 +55,8 @@ def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
         seq_return = True
 
     x = LSTM(units, return_sequences=seq_return)(input_sequence)
-    # x = BatchNormalization()(x)
-    # x = Activation('relu')(x)
-    # x = MaxPooling1D(padding='same')(x)
-    # x = Dropout(0.25)(x)
+    x = LeakyReLU(alpha=0.3)(x)
+    x = Dropout(0.5)(x)
 
     for i in range(1, lstm_layers):
         if i < lstm_layers - 1:
@@ -67,20 +65,18 @@ def lstm_scan(input_sequence, lstm_layers=4, units=128, fcn_layers=1):
             seq_return = False
 
         x = LSTM(units, return_sequences=seq_return)(x)
-        x = BatchNormalization()(x)
-        x = Activation(LeakyReLU(alpha=0.3))(x)
-        x = Dropout(0.25)(x)
+        x = LeakyReLU(alpha=0.3)(x)
+        x = Dropout(0.5)(x)
 
     for _ in range(fcn_layers):
         x = Dense(64)(x)
-        x = BatchNormalization()(x)
-        x = Activation(LeakyReLU(alpha=0.3))(x)
-        x = Dropout(0.25)(x)
+        x = LeakyReLU(alpha=0.3)(x)
+        x = Dropout(0.5)(x)
 
     return x
 
 def lstm_simple(input_sequence):
-    x = LSTM(128)(input_sequence)
+    x = LSTM(32)(input_sequence)
     x = Dropout(0.5)(x)
     x = Dense(1, activation=LeakyReLU(alpha=0.3))(x)
 
@@ -88,11 +84,11 @@ def lstm_simple(input_sequence):
 
 def fc_apply(motifs):
     #   FC layers on concatenated representations
-    expression = Dense(64, activation=LeakyReLU(alpha=0.3))(motifs)
-    expression = Dense(64, activation=LeakyReLU(alpha=0.3))(expression)
+    expression = Dense(64)(motifs)
+    expression = Dense(64)(expression)
 
     #   Output
-    expression = Dense(1, activation=LeakyReLU(alpha=0.3))(expression)
+    expression = Dense(1)(expression)
     return expression
 
 
@@ -110,8 +106,8 @@ def make_model(protein_i, max_length, seq_type):
     metrics = [y_pred_mean, prediction_accuracy]  # 'accuracy'
     protein = Input(shape=protein_i.shape[1:])
     # instantiate the model
-    fc = lstm_simple(protein)
-    #fc = fc_apply(conv_protein)
+    fc = lstm_scan(protein)
+    fc = fc_apply(fc)
 
     model = Model(inputs=[protein],
                   outputs=[fc],
