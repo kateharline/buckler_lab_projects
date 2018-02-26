@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import plotly.plotly as py
 import walley as w
 import os
+import platform
 
 def check_families(fams):
     '''
@@ -158,7 +159,10 @@ def pick_rand(n, genes):
     return subset
 
 def main():
-    os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
+    if 'Ubuntu' in platform.platform():
+        os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
+    else:
+        os.chdir('/home/kateharline/Desktop/buckler-lab/box-data')
 
     selected_tissues = ['Leaf_Zone_3_Growth']
 

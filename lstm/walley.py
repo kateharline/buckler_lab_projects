@@ -1,4 +1,5 @@
 import numpy as np
+import platform
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import os
@@ -7,8 +8,11 @@ import pickle
 # Selected tissue
 selected_tissues = ['Leaf_Zone_3_Growth', 'Root_Meristem_Zone_5_Days']
 
-# File locations
-os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
+# File locationsDesktop/buckler-lab/box-data
+if 'Ubuntu' in platform.platform():
+    os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
+else:
+    os.chdir('/home/kateharline/Desktop/buckler-lab/box-data')
 
 v3_to_v4_file = 'v3_v4_xref.txt'
 proteinSequence_file = 'Zea_mays.AGPv4.pep.longest.pkl'
