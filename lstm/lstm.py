@@ -206,7 +206,7 @@ def main():
     if 'Ubuntu' in platform.platform():
         os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
     else:
-        os.chdir('/home/kateharline/Desktop/buckler-lab/box-data')
+        os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
 
     tissue = 'Protein_Leaf_Zone_3_Growth'
     X_train, Y_train, X_test, Y_test, X_val, Y_val = d.main()

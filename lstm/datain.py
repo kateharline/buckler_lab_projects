@@ -192,7 +192,7 @@ def main():
     if 'Ubuntu' in platform.platform():
         os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
     else:
-        os.chdir('/home/kateharline/Desktop/buckler-lab/box-data')
+        os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
     '''
     train/test synthetic data
     
