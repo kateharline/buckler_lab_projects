@@ -36,7 +36,7 @@ def prediction_accuracy(y_true, y_pred):
     c22 = backend.sum(backend.square(y_pred - backend.mean(y_pred)))
     return c12 / backend.sqrt(c11 * c22)
 
-def debug_accuracy(y_true, y_pred):
+def y_pred_mean(y_true, y_pred):
     return backend.mean(y_pred)
 
 
@@ -106,7 +106,7 @@ def make_model(protein_i, max_length, seq_type):
     # switch
     oh_lengths = {'protein': 21, 'na': 5}
     oh_length = oh_lengths[seq_type]
-    metrics = [debug_accuracy, prediction_accuracy]  # 'accuracy'
+    metrics = [y_pred_mean, prediction_accuracy]  # 'accuracy'
     protein = Input(shape=protein_i.shape[1:])
     # instantiate the model
     fc = lstm_simple(protein)
