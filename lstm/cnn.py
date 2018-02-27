@@ -152,7 +152,7 @@ def fit_and_evaluate(model, model_dir, model_name, y_train, y_val, y_test, prote
 
     return fit, [y_train, ypred_train, cor_train], [y_test, ypred_test, cor_test], [y_val, ypred_val, cor_val]
 
-def plot_stats(fit, model_name, model_dir, y_train, y_test, y_val, selected_tissue):
+def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
     model_metric = prediction_accuracy
     metric_name = model_metric.__name__
     plt_metric_name = metric_name.replace('_', ' ').capitalize()
@@ -210,7 +210,7 @@ def main():
     model = make_model(X_train, max_length, 'protein')
     fit, y_train, y_test, y_val = fit_and_evaluate(model, model_dir, model_name, Y_train, Y_val, Y_test, X_train, X_test,
                                               X_val)
-    accuracy_train, acc_test = plot_stats(fit, model_name, model_dir, y_train, y_test, y_val, tissue)
+    accuracy_train, acc_test = plot_stats(fit, model_name, model_dir, y_train, y_val, tissue)
 
     print('Model summary '+str(model.summary()))
 

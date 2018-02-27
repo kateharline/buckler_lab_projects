@@ -197,7 +197,6 @@ def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
 
     return accuracy_train, accuracy_val
 
-
 def main():
     if 'Ubuntu' in platform.platform():
         os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
@@ -223,7 +222,7 @@ def main():
     fit, y_train, y_test, y_val = fit_and_evaluate(model, model_dir, model_name, Y_train, Y_val, Y_test, X_train,
                                                    X_test,
                                                    X_val)
-    accuracy_train, acc_test = plot_stats(fit, model_name, model_dir, y_train, y_test, y_val, tissue)
+    accuracy_train, acc_test = plot_stats(fit, model_name, model_dir, y_train, y_val, tissue)
 
     print('Model summary ' + str(model.summary()))
 
