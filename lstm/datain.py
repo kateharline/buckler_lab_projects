@@ -175,7 +175,7 @@ def get_set(x_data, y_data, set):
     new_df = pd.concat([x_select, y_select], axis=1, join='inner')
     return new_df
 
-def extract_y(data, tissue):
+def extract_y(data, tissue, categorical, standardized):
     '''
     reformat dataframe values into usable np arrays
     :param data: dataframe of sequence data and expression values
@@ -185,14 +185,32 @@ def extract_y(data, tissue):
     slice = data.loc[:, [tissue]]
     y = np.array(slice[tissue].values)
 
-    return y
-
-
-def main():
-    if 'Ubuntu' in platform.platform():
-        os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
+    if categorical:
+        return binarize(y)
+    if standardized:
+        return standardize(y)
     else:
-        os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
+        return y
+
+def binarize(y):
+    '''
+    create binary representation of expression levels 0: no expression 1: expression
+    :param y: np array of y data
+    :return: np array of binary y data
+    '''
+
+    return bin_y
+
+def standardize(y):
+    '''
+    standardize y data
+    :param y: np array of y data
+    :return: np array of y data in range [0, 1]
+    '''
+
+    return std_y
+
+def main(data_type='random', categorical=True, standardized=False):
     '''
     train/test synthetic data
     
@@ -212,26 +230,28 @@ def main():
     '''
     tissue = 'Protein_Leaf_Zone_3_Growth'
 
-    # load the data from file
-    x_data, y_data = pf.main()
+    # pick x and y data based on family characteristics
+    x_data, y_data = pf.main(data_type)
 
-    encode_dict = load_data('protein_onehot.csv')
-
+    # extract x and y values from dataframe based on set designation
     train = get_set(x_data, y_data, 'train')
     val = get_set(x_data, y_data, 'val')
     test = get_set(x_data, y_data, 'test')
 
+    # one hot encode the x values and split based on set designation
+    encode_dict = load_data('protein_onehot.csv')
     max = my_max(x_data['protein_sequence'].tolist())
 
     train_encoded = base_to_one_hot(train, max, encode_dict)
     val_encoded = base_to_one_hot(val, max, encode_dict)
     test_encoded = base_to_one_hot(test, max, encode_dict)
 
-    train = extract_y(train, tissue)
-    test = extract_y(test, tissue)
-    val = extract_y(val, tissue)
+    # split the y values based on set designation
+    train = extract_y(train, tissue, categorical, standardized)
+    test = extract_y(test, tissue, categorical, standardized)
+    val = extract_y(val, tissue, categorical, standardized)
 
-    return train_encoded, train, test_encoded, test, val_encoded, val
+    return (train_encoded, train, test_encoded, test, val_encoded, val)
 
 
 if __name__ == '__main__':

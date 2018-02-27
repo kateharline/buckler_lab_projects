@@ -1,9 +1,8 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import plotly.plotly as py
 import walley as w
 import os
 import platform
+# import plotfxs as p
 
 def check_families(fams):
     '''
@@ -73,40 +72,6 @@ def get_sizes(families):
     return lengths
 
 
-def plot_exp_distribution(avgs, bins, type, mask=False):
-    if mask:
-        avgs_m = np.ma.masked_equal(avgs, 0)
-        plt.hist(avgs_m, bins, facecolor='blue', alpha=0.5)
-        plt.title('Expression Distribution Across Gene Families (M)')
-    else:
-        plt.hist(avgs, bins, facecolor='blue', alpha=0.5)
-        plt.title('Expression Distribution Across Gene Families')
-    plt.xlabel(str(type)+' Expression')
-    plt.ylabel('Frequency Among Families')
-
-    plt.show()
-    return None
-
-def plot_size_distribution(sizes, bins):
-    plt.hist(sizes, bins, facecolor='blue', alpha=0.5)
-    plt.xlabel('Size')
-    plt.ylabel('Frequency')
-    plt.title('Size of families')
-    plt.show()
-    return None
-
-def plot_relationship(sizes, avgs, type, mask=False):
-    if mask:
-        avgs_m = np.ma.masked_equal(avgs, 0)
-        plt.scatter(sizes, avgs_m)
-        plt.title('Relationship Between Family Size and Expression (M)')
-    else:
-        plt.scatter(sizes, avgs)
-        plt.title('Relationship Between Family Size and Expression')
-    plt.xlabel('Size')
-    plt.ylabel(str(type)+' Expression within Family')
-    plt.show()
-    return None
 
 def pick_families(fams, avgs, sizes):
     '''
@@ -123,15 +88,15 @@ def pick_families(fams, avgs, sizes):
     return selected_fams
 
 
-def pick_bal(n, p, genes, maxs):
+def pick_bal(n, p, genes, maxs, threshold):
     '''
     pick sample of total n genes with p split between high expression and low expression genes from families
     :param n: int total subset size
     :param p: float ratio of high expression to low expression
     :param genes: np array of strings names of genes with max expression from a family
+    :param threshold: int or float value to threshold the max at
     :return: list of string gene names to then be analyzes
     '''
-    threshold = 2
 
     hi_genes = []
     lo_genes = []
@@ -139,7 +104,7 @@ def pick_bal(n, p, genes, maxs):
     for i, gene in enumerate(genes):
         if maxs[i] > threshold:
             hi_genes.append(gene)
-        else:
+        if maxs[i] == 0:
             lo_genes.append(gene)
 
     subset = pick_rand(n*p, hi_genes)
@@ -158,12 +123,7 @@ def pick_rand(n, genes):
 
     return subset
 
-def main():
-    if 'Ubuntu' in platform.platform():
-        os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
-    else:
-        os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
-
+def main(data_type):
     selected_tissues = ['Leaf_Zone_3_Growth']
 
     v3_to_v4, genes = w.make_V3_converter('v3_v4_xref.txt')
@@ -181,26 +141,37 @@ def main():
     maxs, max_genes = get_max_exp(gene_families, protein_DF[selected_tissues].to_dict(), selected_tissues)
     sizes = get_sizes(gene_families)
 
-    # plot_exp_distribution(avgs[0], 100)
-    # plot_size_distribution(sizes, 100)
-    # plot_relationship(sizes, avgs[0])
-    # plot_exp_distribution(maxs[0][1], 100, 'Max', mask=True)
-    # plot_exp_distribution(avgs[0], 100, 'Average', mask=True)
-    # plot_relationship(sizes, avgs[0], 'Average', mask=True)
-    # plot_relationship(sizes, maxs[0][1], 'Max')
-    # plot_relationship(sizes, maxs[0][1], 'Max', mask=True)
+    # p.plot_exp_distribution(avgs[0], 100)
+    # p.plot_size_distribution(sizes, 100)
+    # p.plot_relationship(sizes, avgs[0])
+    # p.plot_exp_distribution(maxs[0][1], 100, 'Max', mask=True)
+    # p.plot_exp_distribution(avgs[0], 100, 'Average', mask=True)
+    # p.plot_relationship(sizes, avgs[0], 'Average', mask=True)
+    # p.plot_relationship(sizes, maxs[0][1], 'Max')
+    # p.plot_relationship(sizes, maxs[0][1], 'Max', mask=True)
 
     # make splits for different analyses
+    if data_type == 'random':
+        smaller_fams = pick_families(gene_families, avgs[0], sizes) # 358 families, simple model
+        genes_test, genes_train, genes_val = w.make_splits(smaller_fams)
+        x, y = w.format_final_df(protein_DF, proteinSequence_DF, genes_train, genes_val, genes_test)
 
-    smaller_fams = pick_families(gene_families, avgs[0], sizes) # 358 families, simple model
-    # balanced_fams = pick_bal(200, 0.5, max_genes, maxs) # set to split for bal v unbal question
-    # unbalanced_fams = pick_rand(200, max_genes)
+        return x, y
 
-    # convert subset to usable dataframe for making models
-    genes_test, genes_train, genes_val = w.make_splits(smaller_fams)
-    x, y = w.format_final_df(protein_DF, proteinSequence_DF, genes_train, genes_val, genes_test)
+    if data_type == 'balanced':
+        balanced_fams = pick_bal(200, 0.5, max_genes, maxs, 2) # set to split for bal v unbal question
+        genes_test, genes_train, genes_val = w.make_splits(balanced_fams)
+        x, y = w.format_final_df(protein_DF, proteinSequence_DF, genes_train, genes_val, genes_test)
 
-    return x, y
+        return x, y
+
+    if data_type == 'unbalanced':
+        unbalanced_fams = pick_rand(200, max_genes)
+        genes_test, genes_train, genes_val = w.make_splits(unbalanced_fams)
+        x, y = w.format_final_df(protein_DF, proteinSequence_DF, genes_train, genes_val, genes_test)
+
+        return x, y
+
 
 
 if __name__ == '__main__':

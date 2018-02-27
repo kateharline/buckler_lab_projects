@@ -41,90 +41,6 @@ def y_pred_mean(y_true, y_pred):
     return backend.mean(y_pred)
 
 
-def lstm_scan(input_sequence, lstm_layers=4, units=32, fcn_layers=1):
-    '''
-    use the functional API to instantiate layers in LSTM
-    :param input_sequence: np multi-dim array of encoded protein sequences
-    :param lstm_layers: int number of lstm layers
-    :param fcn_layers: int number of fully connected layers
-    :return: model with layers applied
-    '''
-    seq_return = False
-
-    if lstm_layers > 1:
-        seq_return = True
-
-    x = LSTM(units, return_sequences=seq_return)(input_sequence)
-    x = LeakyReLU(alpha=0.3)(x)
-    x = Dropout(0.5)(x)
-
-    for i in range(1, lstm_layers):
-        if i < lstm_layers - 1:
-            seq_return = True
-        else:
-            seq_return = False
-
-        x = LSTM(units, return_sequences=seq_return)(x)
-        x = LeakyReLU(alpha=0.3)(x)
-        x = Dropout(0.5)(x)
-
-    for _ in range(fcn_layers):
-        x = Dense(64)(x)
-        x = LeakyReLU(alpha=0.3)(x)
-        x = Dropout(0.5)(x)
-
-    return x
-
-def lstm_simple(input_sequence):
-    x = LSTM(32)(input_sequence)
-    x = Dropout(0.5)(x)
-    x = Dense(1, activation=LeakyReLU(alpha=0.3))(x)
-
-    return x
-
-def fc_apply(motifs):
-    #   FC layers on concatenated representations
-    expression = Dense(64)(motifs)
-    expression = Dense(64)(expression)
-
-    #   Output
-    expression = Dense(1)(expression)
-    return expression
-
-
-def make_model(protein_i, max_length, seq_type):
-    '''
-    instantiate keras model
-    :param X: np array of x values
-    :param max_length: int max length you want to embed
-    :param sequence type: string na (mucleic acid) or protein
-    :return: keras model object
-    '''
-    # switch
-    oh_lengths = {'protein': 21, 'na': 5}
-    oh_length = oh_lengths[seq_type]
-    metrics = [y_pred_mean, prediction_accuracy]  # 'accuracy'
-    protein = Input(shape=protein_i.shape[1:])
-    # instantiate the model
-    fc = lstm_scan(protein)
-    fc = fc_apply(fc)
-
-    model = Model(inputs=[protein],
-                  outputs=[fc],
-                  name='protein_level')
-
-    # Inspection
-    model.summary()
-    print('Output shape: ' + str(model.output_shape))
-
-    # Compilation
-    model.compile(optimizer=optimizers.Adam(),
-                  loss='mse',
-                  metrics=metrics)
-
-    return model
-
-
 def fit_and_evaluate(model, model_dir, model_name, y_train, y_val, y_test, protein_train, protein_test, protein_val,
                      make_checkpoints=True):
     min_delta = 0
@@ -197,28 +113,12 @@ def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
 
     return accuracy_train, accuracy_val
 
-def main():
-    if 'Ubuntu' in platform.platform():
-        os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
-    else:
-        os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
-
-    tissue = 'Protein_Leaf_Zone_3_Growth'
-    X_train, Y_train, X_test, Y_test, X_val, Y_val = d.main()
-
-    output_folder = 'box-data'
-    os.system('mkdir ' + output_folder)
-
-    model_dir = os.path.join(output_folder, 'tmp')
-    os.system('mkdir ' + model_dir)
-
-    # LSTM
-
-    model_name = 'p2p_LSTM'
+def main(model_name, model_dir, t_params, X_train, Y_train, X_test, Y_test, X_val, Y_val, tissue='Protein_Leaf_Zone_3_Growth'):
+    # t_params : learning_rate, num_layers, units_per_layer
 
     max_length = len(X_train[0])
 
-    model = make_model(X_train, max_length, 'protein')
+    model = make_model(X_train, max_length, 'protein', t_params[1], t_params[2])
     fit, y_train, y_test, y_val = fit_and_evaluate(model, model_dir, model_name, Y_train, Y_val, Y_test, X_train,
                                                    X_test,
                                                    X_val)
