@@ -93,6 +93,7 @@ def load_data(filename, delim=','):
     :param filename: string name of the file
     :param delim: string delimiter
     :return: dataframe version of the given file
+
     useful functions to check state of data
     # print(data.head(10))
     # print('data types '+str(data.dtypes))
@@ -125,6 +126,7 @@ def base_to_one_hot(data, max, encode_dict):
     '''
     one hot helper function
     :param data: datafrmae containing protein sequences as strings
+    :param max: int maximum length of sequence to use as array dimension or for padding
     :param encode_dict: dataframe that can be used to convert sequence bases/residues to one hot vectors
     :return: list of one hot encodings
     '''
@@ -179,6 +181,8 @@ def extract_y(data, tissue, categorical):
     '''
     reformat dataframe values into usable np arrays
     :param data: dataframe of sequence data and expression values
+    :param tissue: string tissue to select data from
+    :param categorical: bool make the data binary threshold [0, 1]
     :return: np arrays of y data
     '''
     # slice out just one hot vectors and protein levels
@@ -204,13 +208,13 @@ def binarize(y):
 
 def standardize(y_train, y_test, y_val):
     '''
-
-    :param y_train:
-    :param y_test:
-    :param y_val:
-    :return:
+    standardise the data between [0, 1] fit to train data
+    :param y_train: np array of y training exp values
+    :param y_test:np array of y test exp values
+    :param y_val: np array of y val exp values
+    :return: arrays scaled based on fit to y_train
     '''
-    scaler = sk.StandardScaler().fit(y_train)
+    scaler = sk.MinMaxScaler.fit(y_train)
     y_train_scaled = scaler.transform(y_train)
     y_test_scaled = scaler.transform(y_test)
     y_val_scaled = scaler.transform(y_val)

@@ -56,6 +56,14 @@ def iterate_models(model_dir, models, tuning_params):
         classify = combo[1]
         data_type = combo[2]
 
+        # trying to manage gpu loads
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        if model_type == cnn:
+            os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+        else:
+            os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+
         data = d.main(data_type=data_type, categorical=classify, standardized=(not classify))
         iterate_params(model_type, classify, model_dir, tuning_params, data)
 
