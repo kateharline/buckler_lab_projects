@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 import os
-import pickle
+import sklearn.preprocessing as sk
 import pickfamily as pf
 import platform
 
@@ -175,7 +175,7 @@ def get_set(x_data, y_data, set):
     new_df = pd.concat([x_select, y_select], axis=1, join='inner')
     return new_df
 
-def extract_y(data, tissue, categorical, standardized):
+def extract_y(data, tissue, categorical):
     '''
     reformat dataframe values into usable np arrays
     :param data: dataframe of sequence data and expression values
@@ -187,8 +187,6 @@ def extract_y(data, tissue, categorical, standardized):
 
     if categorical:
         return binarize(y)
-    if standardized:
-        return standardize(y)
     else:
         return y
 
@@ -198,17 +196,26 @@ def binarize(y):
     :param y: np array of y data
     :return: np array of binary y data
     '''
+    bin_y = y.copy()
+    bin_y[bin_y > 0] = 1
+    bin_y[bin_y <= 0] = 0
 
     return bin_y
 
-def standardize(y):
-    '''
-    standardize y data
-    :param y: np array of y data
-    :return: np array of y data in range [0, 1]
+def standardize(y_train, y_test, y_val):
     '''
 
-    return std_y
+    :param y_train:
+    :param y_test:
+    :param y_val:
+    :return:
+    '''
+    scaler = sk.StandardScaler().fit(y_train)
+    y_train_scaled = scaler.transform(y_train)
+    y_test_scaled = scaler.transform(y_test)
+    y_val_scaled = scaler.transform(y_val)
+
+    return y_train_scaled, y_test_scaled, y_val_scaled
 
 def main(data_type='random', categorical=True, standardized=False):
     '''
@@ -247,9 +254,12 @@ def main(data_type='random', categorical=True, standardized=False):
     test_encoded = base_to_one_hot(test, max, encode_dict)
 
     # split the y values based on set designation
-    train = extract_y(train, tissue, categorical, standardized)
-    test = extract_y(test, tissue, categorical, standardized)
-    val = extract_y(val, tissue, categorical, standardized)
+    train = extract_y(train, tissue, categorical)
+    test = extract_y(test, tissue, categorical)
+    val = extract_y(val, tissue, categorical)
+
+    if standardized:
+        train, test, val = standardized(train, test, val)
 
     return (train_encoded, train, test_encoded, test, val_encoded, val)
 
