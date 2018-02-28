@@ -1,30 +1,20 @@
 import os
 import warnings
 import numpy as np
-import pandas as pd
 from scipy.stats import pearsonr as cor
 from keras.models import Model
-from keras.layers import Activation, MaxPooling1D, Flatten, BatchNormalization, Input, LSTM
-from keras.layers.advanced_activations import LeakyReLU
+from keras.layers import Input
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 import keras.optimizers as optimizers
 import keras.backend as backend
 import matplotlib.pyplot as plt
-import datain as d
-import h5py
-import platform
+
 
 # prevent warnings about CPU extensions
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-from keras.models import Sequential
-from keras.layers import Dense, Conv1D, Dropout, GlobalAveragePooling1D
-# from keras.layers.embeddings import Embedding
-from keras.preprocessing import sequence
-
 # fix random seed for reproducibility
 np.random.seed(7)
-
 
 def prediction_accuracy(y_true, y_pred):
     '''calculate the prediction accuracy of the model
@@ -40,9 +30,73 @@ def prediction_accuracy(y_true, y_pred):
 def y_pred_mean(y_true, y_pred):
     return backend.mean(y_pred)
 
+def make_model(protein_i, model_type, max_length, seq_type, classify, t_params):
+    '''
+    instantiate keras model
+    :param protein_i: np array of protein input
+    :param model_type: function that creates a model cnn or lstm
+    :param max_length: int maximum length of sequences in protein input
+    :param seq_type: string protein or na (nucleic acid)
+    :param classify: boolean is this a categorical or regression out put
+    :param t_params: tuple of parameters to tune
+    :return: keras model
+    '''
+    lr = t_params[0]
+    num_layers = t_params[1]
+    units_per_layer = t_params[2]
+
+    # switch
+    oh_lengths = {'protein':21, 'na':5}
+    oh_length = oh_lengths[seq_type]
+
+
+    # for a regression problem
+    mets = prediction_accuracy
+    final_activation = 'relu'
+    loss = 'mse'
+
+    if classify:
+        mets = 'accuracy'
+        final_activation = 'sigmoid'
+        loss = 'binary_crossentropy'
+
+    metrics = [mets] # 'accuracy'
+    protein = Input(shape=protein_i.shape[1:])
+    # instantiate the model
+    conv_protein = model_type(protein, final_activation=final_activation, layers=num_layers, units=units_per_layer)
+
+    model = Model(inputs=[protein],
+              outputs=[conv_protein],
+              name='protein_level')
+
+    # Inspection
+    model.summary()
+    print('Output shape: ' + str(model.output_shape))
+
+    # Compilation
+    model.compile(optimizer=optimizers.Adam(lr),
+                  loss=loss,
+                  metrics=metrics)
+
+    return model
+
 
 def fit_and_evaluate(model, model_dir, model_name, y_train, y_val, y_test, protein_train, protein_test, protein_val,
                      make_checkpoints=True):
+    '''
+    fit keras model to test, train and val data
+    :param model: function type of model used
+    :param model_dir: str directory location data being saved
+    :param model_name: str description of the model
+    :param y_train:
+    :param y_val:
+    :param y_test:
+    :param protein_train:
+    :param protein_test:
+    :param protein_val:
+    :param make_checkpoints:
+    :return: keras object fitted model (with stats); tuples of train, test and val results
+    '''
     min_delta = 0
     patience = 5
     batch_size = 256
@@ -81,6 +135,16 @@ def fit_and_evaluate(model, model_dir, model_name, y_train, y_val, y_test, prote
 
 
 def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
+    '''
+    save a graph of the current model
+    :param fit: keras object fitted model
+    :param model_name: str name of the model (with param info) for saving data
+    :param model_dir: str directory where data is being saved
+    :param y_train: list of y_training values... [real, predicted, correlation]
+    :param y_val: list of y_validation values... [real, predicted, correlation]
+    :param selected_tissue: str tissue selected for protein expression data
+    :return: list accuracy values calculated for training and validation ??
+    '''
     model_metric = prediction_accuracy
     metric_name = model_metric.__name__
     plt_metric_name = metric_name.replace('_', ' ').capitalize()
@@ -113,12 +177,12 @@ def plot_stats(fit, model_name, model_dir, y_train, y_val, selected_tissue):
 
     return accuracy_train, accuracy_val
 
-def main(model_name, model_dir, t_params, X_train, Y_train, X_test, Y_test, X_val, Y_val, tissue='Protein_Leaf_Zone_3_Growth'):
+def main(model_type, classify, model_name, model_dir, t_params, X_train, Y_train, X_test, Y_test, X_val, Y_val, tissue='Protein_Leaf_Zone_3_Growth'):
     # t_params : learning_rate, num_layers, units_per_layer
 
     max_length = len(X_train[0])
 
-    model = make_model(X_train, max_length, 'protein', t_params[1], t_params[2])
+    model = make_model(X_train, model_type, max_length, 'protein', classify, *t_params)
     fit, y_train, y_test, y_val = fit_and_evaluate(model, model_dir, model_name, Y_train, Y_val, Y_test, X_train,
                                                    X_test,
                                                    X_val)

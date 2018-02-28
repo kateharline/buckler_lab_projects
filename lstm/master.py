@@ -6,22 +6,34 @@ import platform
 import itertools as it
 
 import datain as d
+import modelmaker as m
+from models import cnn, lstm
+
+def tuple_combos(dict):
+    keys = sorted(dict)
+    combinations = it.product(*(dict[key] for key in keys))
+
+    return combinations
 
 
-def run_a_model(data, model_dir, model_type, t_params):
+def run_a_model(model_type, classify, model_dir, t_params, data):
     '''
     run an instance of the given model
     :param data: tuple of train, test and val x+y values
     :param model_type: module of model to run
     :param t_params: tuple of values for lr, num of layers and units per layer
     '''
-    model_name = str(model_type)+'_lr_'+str(t_params[0])+'_lys_'+str(t_params[1])+'_uns_'+str(t_params[2])
+    lr = t_params[0]
+    num_layers = t_params[1]
+    units_per_layer = t_params[2]
 
-    model_type.main(model_name, model_dir, t_params, *data)
+    model_name = str(model_type)+'_lr_'+str(lr)+'_lys_'+str(num_layers)+'_uns_'+str(units_per_layer)
+
+    m.main(model_type, classify, model_name, model_dir, t_params, *data)
 
     return None
 
-def iterate_models(data, model_dir, model_type, tuning_params):
+def iterate_params(model_type, classify, model_dir, tuning_params, data):
     '''
     iteratively evaluate models with different combinations of parameters
     :param data: tuple of train, test and val x+y values
@@ -29,11 +41,23 @@ def iterate_models(data, model_dir, model_type, tuning_params):
     :param tuning_params: dictionary of tuning parameters assoc with lists of values to iteratively try
     '''
     # make array of tuples all combinations of tuning params
-    params = sorted(tuning_params)
-    combinations = it.product(*(tuning_params[param] for param in params))
+    combinations = tuple_combos(tuning_params)
 
     for combo in combinations:
-        run_a_model(data, model_dir, model_type, combo)
+        run_a_model(model_type, classify, model_dir, combo, data)
+
+    return None
+
+def iterate_models(model_dir, models, tuning_params):
+    model_combos = tuple_combos(models)
+
+    for combo in model_combos:
+        model_type = combo[0]
+        classify = combo[1]
+        data_type = combo[2]
+
+        data = d.main(data_type=data_type, categorical=classify, standardized=(not classify))
+        iterate_params(model_type, classify, model_dir, tuning_params, data)
 
     return None
 
@@ -59,32 +83,14 @@ def main():
                       'units' : [32, 64, 128],
                       }
 
-    # categorical data sets
-    # returns (train_encoded, train, test_encoded, test, val_encoded, val)
-    random = d.main(data_type='random', categorical=True, standardized=False)
-    iterate_models(random, model_dir, cnnClass, tuning_params)
-    iterate_models(random, model_dir, lstmClass, tuning_params)
+    models = {
+        'model_type' : [cnn, lstm],
+        'classify' : [True, False],
+        'data_type' : ['random', 'balanced', 'unbalanced']
+    }
 
-    bal = d.main(data_type='balanced', categorical=True, standardized=False)
-    iterate_models(bal, model_dir, cnnClass, tuning_params)
-    iterate_models(bal, model_dir, lstmClass, tuning_params)
+    iterate_models(model_dir, models, tuning_params)
 
-    unbal = d.main(data_type='unbalanced', categorical=True, standardized=False)
-    iterate_models(unbal, model_dir, cnnClass, tuning_params)
-    iterate_models(unbal, model_dir, lstmClass, tuning_params)
-
-    # continuous datasets
-    random_cont = d.main(data_type='random', categorical=False, standardized=True)
-    iterate_models(random_cont, model_dir, cnn, tuning_params)
-    iterate_models(random_cont, model_dir, lstm, tuning_params)
-
-    bal_cont = d.main(data_type='balanced', categorical=False, standardized=True)
-    iterate_models(bal_cont, model_dir, cnn, tuning_params)
-    iterate_models(bal_cont, model_dir, lstm, tuning_params)
-
-    unbal_cont = d.main(data_type='unbalanced', categorical=False, standardized=True)
-    iterate_models(unbal_cont, model_dir, cnn, tuning_params)
-    iterate_models(unbal_cont, model_dir, lstm, tuning_params)
 
 
 
