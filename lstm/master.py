@@ -72,12 +72,14 @@ def iterate_models(model_dir, models, tuning_params):
 
 def main():
     if 'Ubuntu' in platform.platform():
-        os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
+        # Hai's computer
+        os.chdir('/home/kh694/Desktop/cnnOrLstm/data')
     elif 'Darwin' in platform.platform():
-        os.chdir('/Users/kateharline/Desktop/buckler-lab/box-data')
-    else:
-        ## need to fit to cbsu/file structure
-        os.chdir('/home/wkdir/lstmOrCnn/data')
+        # my mac
+        os.chdir('/Users/kateharline/Desktop/cnnOrLstm/data')
+    elif 'Linux' in platform.platform():
+        # cbsu
+        os.chdir('/local/workdir/cnnOrLstm/data')
 
 
     output_folder = 'outputs'
