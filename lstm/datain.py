@@ -11,20 +11,15 @@ import platform
 import control as c
 
 ####--------------making matrices-------------#############
-def txt_to_csv():
+def txt_to_csv(txt_file):
     '''
     convert txt file to csv to load as a dataframe etc
+    :param txt_file: str filename for the txt file to load
     :return: NA, outputs file as csv
     '''
-
-    if 'Ubuntu' in platform.platform():
-        os.chdir('/home/kh694/Desktop/buckler-lab/box-data')
-    else:
-        os.chdir('/home/kateharline/Desktop/buckler-lab/box-data')
-
-
-    with open('BLOSUM62.txt') as f:
-        with open('blosum62.csv', 'w') as out:
+    with open(txt_file) as f:
+        csv_name = os.path.basename(txt_file).split()[0] + '.csv'
+        with open(csv_name, 'w') as out:
 
             for line in f:
                 new_line = ','.join(line.split())
@@ -85,7 +80,6 @@ def float_to_rank():
 
 
 ########---------actual module code--------------############
-
 
 def load_data(filename, delim=','):
     '''
