@@ -1,5 +1,3 @@
-keras
-matplotlib
-pandas
-sklearn
-plotly
+version https://git-lfs.github.com/spec/v1
+oid sha256:868146fecb3eaf40763572d6a039bb7f66510b5b79556c8168107b58b0b83ce7
+size 38
